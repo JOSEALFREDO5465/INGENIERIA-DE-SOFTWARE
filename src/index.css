@@ -1,0 +1,388 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "system-ui", -apple-system, sans-serif;
+  --font-mono: "Plus Jakarta Sans", "Inter", sans-serif;
+
+  /* PALETA MATERIALLY ESPECTACULAR: AZUL COBALTO, GRIS CLARO DE FONDO, ACENTOS SEMÁNTICOS (VIOLETA, NARANJA, ROJO, VERDE) */
+  --color-indigo-50: #e3f2fd;      /* Light blue accent */
+  --color-indigo-100: #bbdefb;     
+  --color-indigo-200: #90caf9;     
+  --color-indigo-300: #64b5f6;     
+  --color-indigo-400: #42a5f5;     
+  --color-indigo-500: #2196f3;     /* Azul vibrante */
+  --color-indigo-600: #1e88e5;     /* Azul Materially Principal */
+  --color-indigo-700: #1565c0;     /* Azul oscuro */
+  --color-indigo-800: #0d47a1;     
+  --color-indigo-900: #0d47a1;     
+  --color-indigo-950: #0a2540;
+
+  --color-slate-50: #f4f7fa;       /* Fondo de página light gris-azul */
+  --color-slate-100: #eef2f6;      /* Separadores / bordes sutiles */
+  --color-slate-200: #e0e6ed;      /* Bordes estándar */
+  --color-slate-300: #cfd8dc;      
+  --color-slate-400: #90a4ae;      
+  --color-slate-500: #607d8b;      /* Texto de apoyo */
+  --color-slate-600: #455a64;      /* Cuerpo */
+  --color-slate-700: #37474f;      
+  --color-slate-800: #263238;      
+  --color-slate-900: #1a202c;      /* Negro carbón */
+  --color-slate-950: #0f172a;
+
+  /* Sombras Materially puras, limpias y profesionales */
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+}
+
+/* APARIENCIA FLUIDA GENERAL */
+* {
+  text-shadow: none !important;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #f4f7fa !important; /* Gris de fondo de Materially */
+  color: #37474f !important;
+}
+
+main {
+  background-color: #f4f7fa !important;
+}
+
+/* BARRA LATERAL (SIDEBAR) MATERIALLY EXCEPCIONAL */
+aside {
+  background-color: #ffffff !important;
+  border-right: 1px solid #e0e6ed !important;
+}
+
+/* Logo de la iglesia en la parte superior izquierda */
+aside .border-b,
+aside .p-6 {
+  background-color: #1565c0 !important; /* Royal Blue vibrant background */
+  border-bottom: 1px solid #0d47a1 !important;
+}
+
+/* Textos dentro del logo title */
+aside .border-b *,
+aside .p-6 * {
+  color: #ffffff !important;
+}
+
+aside .p-6 .bg-indigo-600 {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+aside .p-6 .bg-indigo-600 svg {
+  color: #ffffff !important;
+}
+
+/* Textos e íconos de la navegación principal del sidebar */
+aside nav button {
+  color: #455a64 !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 4px !important;
+  font-weight: 500 !important;
+  padding: 10px 16px !important;
+  transition: all 0.2s ease !important;
+}
+
+aside nav button svg {
+  color: #607d8b !important;
+  transition: color 0.2s ease !important;
+}
+
+/* Botón de la navegación lateral ACTIVO en la vista: gris suave */
+aside nav button.bg-indigo-650,
+aside nav button.bg-indigo-600 {
+  background-color: #f1f4f9 !important; /* Gris de selección Materially */
+  color: #1565c0 !important; /* Royal blue para contraste */
+  font-weight: 600 !important;
+  border-left: 4px solid #1565c0 !important; /* Borde izquierdo característico */
+  border-radius: 0 4px 4px 0 !important;
+}
+
+aside nav button.bg-indigo-650 *,
+aside nav button.bg-indigo-600 * {
+  color: #1565c0 !important;
+}
+
+aside nav button.bg-indigo-650 svg,
+aside nav button.bg-indigo-600 svg {
+  color: #1565c0 !important;
+}
+
+/* Hover de los botones inactivos del sidebar (Gris muy suave) */
+aside nav button:hover {
+  background-color: #f8f9fa !important;
+  color: #1565c0 !important;
+}
+
+aside nav button:hover svg {
+  color: #1565c0 !important;
+}
+
+/* Quitar flechas del sidebar activo */
+aside nav button svg.lucide-chevron-right {
+  display: none !important;
+}
+
+/* Perfil inferior de colaborador en el sidebar */
+aside .p-4.border-t {
+  background-color: #ffffff !important;
+  border-top: 1px solid #e0e6ed !important;
+}
+
+aside .p-4.border-t * {
+  color: #37474f !important;
+}
+
+aside .p-4.border-t .bg-indigo-600 {
+  background-color: #e3f2fd !important;
+  border: 1px solid #bbdefb !important;
+}
+
+aside .p-4.border-t .bg-indigo-600 * {
+  color: #1565c0 !important;
+}
+
+/* Botón cerrar sesión con estilo limpio */
+aside button.bg-red-950\/20 {
+  background-color: #ffebee !important;
+  color: #c62828 !important;
+  border: 1px solid #ffcdd2 !important;
+}
+
+aside button.bg-red-950\/20 * {
+  color: #c62828 !important;
+}
+
+aside button.bg-red-950\/20:hover {
+  background-color: #ffcdd2 !important;
+}
+
+/* CABECERA PARA MÓVILES */
+header.md\:hidden {
+  background-color: #1565c0 !important;
+  border-bottom: 1px solid #0d47a1 !important;
+}
+
+header.md\:hidden * {
+  color: #ffffff !important;
+}
+
+header.md\:hidden .bg-indigo-600 {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* TARJETAS DE MÁXIMA CALIDAD MATERIALLY COPIANDO LA GEOMETRÍA DE LA IMAGEN */
+.bg-white {
+  background-color: #ffffff !important;
+  border: 1px solid #e0e6ed !important;
+  border-radius: 6px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+}
+
+/* CONTRASTE DE LOS CONTENIDOS */
+body, main {
+  color: #455a64;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #263238;
+}
+
+main h1, main h2, main h3, main h4, main h5, main h6 {
+  color: #263238;
+}
+
+main p, main label {
+  color: #455a64;
+}
+
+/* Asegurar que las clases de texto blanco de Tailwind se respeten con alta prioridad */
+.text-white,
+.text-white p,
+.text-white span,
+.text-white div,
+.text-white svg {
+  color: #ffffff !important;
+}
+
+/* TABLA AL ESTILO MATERIALLY (LATEST ORDER) */
+table {
+  border-color: #eef2f6 !important;
+}
+
+th {
+  background-color: #f8fafc !important;
+  color: #607d8b !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  border-bottom: 2px solid #eef2f6 !important;
+}
+
+td {
+  color: #37474f !important;
+  border-bottom: 1px solid #eef2f6 !important;
+  background-color: #ffffff !important;
+  font-size: 13px !important;
+}
+
+tr:hover td {
+  background-color: #f8fafc !important;
+}
+
+/* INPUTS Y FORMULARIOS */
+input,
+select,
+textarea {
+  background-color: #ffffff !important;
+  border: 1px solid #cfd8dc !important;
+  color: #263238 !important;
+  border-radius: 4px !important;
+  padding: 8px 12px;
+  font-size: 13px !important;
+  transition: all 0.15s ease !important;
+}
+
+/* Permitir que las clases de padding de Tailwind anulen el padding base */
+input.pl-9, textarea.pl-9 { padding-left: 2.25rem !important; }
+input.pl-10, textarea.pl-10 { padding-left: 2.5rem !important; }
+input.pl-11, textarea.pl-11 { padding-left: 2.75rem !important; }
+input.pl-12, textarea.pl-12 { padding-left: 3rem !important; }
+input.pr-4, textarea.pr-4 { padding-right: 1rem !important; }
+input.py-2, textarea.py-2 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+input.py-2\.5, textarea.py-2\.5 { padding-top: 0.625rem !important; padding-bottom: 0.625rem !important; }
+input.py-3, textarea.py-3 { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #1e88e5 !important;
+  outline: none !important;
+}
+
+/* BOTONES DE ACCIÓN PRINCIPALES */
+button.bg-indigo-600,
+button.bg-indigo-650,
+button.bg-sky-600,
+button.bg-sky-500,
+button[type="submit"],
+main .bg-indigo-600,
+main .bg-indigo-650 {
+  background-color: #1e88e5 !important; /* Azul Materially */
+  color: #ffffff !important;
+  border: 1px solid #1565c0 !important;
+  border-radius: 4px !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+  padding: 8px 16px !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1) !important;
+  transition: all 0.15s ease !important;
+}
+
+button.bg-indigo-600:hover,
+button.bg-indigo-650:hover,
+button.bg-sky-600:hover,
+button.bg-sky-500:hover,
+button[type="submit"]:hover,
+main .bg-indigo-600:hover,
+main .bg-indigo-650:hover {
+  background-color: #1565c0 !important;
+  border-color: #0d47a1 !important;
+  color: #ffffff !important;
+}
+
+/* BOTÓN SECUNDARIOS */
+button.bg-white,
+button.border-slate-200,
+.bg-white.text-slate-800 {
+  background-color: #ffffff !important;
+  color: #455a64 !important;
+  border: 1px solid #cfd8dc !important;
+  border-radius: 4px !important;
+}
+
+button.bg-white:hover,
+button.border-slate-200:hover {
+  background-color: #f8f9fa !important;
+  color: #1565c0 !important;
+}
+
+/* BADGES DE ESTATUS SEGÚN LA IMAGEN DE REFERENCIA */
+.bg-green-105,
+.bg-green-100 {
+  background-color: #2ecc71 !important; /* Green */
+  border: none !important;
+  color: #ffffff !important;
+  border-radius: 20px !important;
+  padding: 3px 12px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+
+.bg-red-105,
+.bg-red-100 {
+  background-color: #e53935 !important; /* Red */
+  border: none !important;
+  color: #ffffff !important;
+  border-radius: 20px !important;
+  padding: 3px 12px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+
+/* BORDES FINOS GENERALES */
+.border,
+.border-slate-100,
+.border-slate-200,
+.border-slate-350,
+.border-slate-300 {
+  border-color: #e0e6ed !important;
+}
+
+/* ESTILOS GRÁFICOS INTERACTIVOS (BARRAS ESTADÍSTICAS) */
+main svg text {
+  fill: #607d8b !important;
+  font-family: var(--font-sans) !important;
+}
+
+/* Donas e Indicadores de Discipulado/Género */
+circle[stroke="#0ea5e9"],
+circle[stroke="#0284c7"] {
+  stroke: #1e88e5 !important;
+}
+
+/* Remoción total de gradientes para usar banners e indicaciones con máxima prolijidad */
+.bg-gradient-to-r {
+  background-image: none !important;
+  background-color: #1565c0 !important; /* Banner Azul Principal */
+  border-radius: 6px !important;
+}
+
+.bg-gradient-to-r * {
+  color: #ffffff !important;
+}
+
+.bg-gradient-to-r span {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+/* AJUSTES ADICIONALES PARA LOGIN PANTALLA */
+div.bg-\[\#e0f2fe\] {
+  background-color: #f4f7fa !important;
+}
+
+div.bg-white.py-8 {
+  border-radius: 6px !important;
+  border: 1px solid #e0e6ed !important;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.06) !important;
+}
