@@ -1,5 +1,4 @@
 // ESTE COMPONENTE CONTIENE LA PÁGINA DEL DASHBOARD PRINCIPAL
-// MUESTRA LA MISIÓN, VISIÓN, MÉTODOS ESTADÍSTICOS DIVERGENTES Y LAS 5 REUNIONES Y ACTIVIDADES SEMANALES REQUERIDAS
 
 import React from 'react';
 import { useApp } from '../contextos/AppContexto';
@@ -8,7 +7,7 @@ import { Church, Users, HeartHandshake, Award, Layers, CalendarDays, UserCheck, 
 export const Dashboard: React.FC = () => {
   const { miembros, actividades, grupos } = useApp();
 
-  // --- FILTROS Y ESTADÍSTICAS DINÁMICAS BASADAS EN LOS REGISTROS EN TIEMPO REAL ---
+  // FILTROS Y ESTADÍSTICAS DINÁMICAS BASADAS EN LOS REGISTROS
 
   // 1. MIEMBROS BAUTIZADOS DIVIDIDOS ENTRE MUJERES Y VARONES
   const bautizados = miembros.filter(m => m.bautizado === true);
@@ -48,7 +47,7 @@ export const Dashboard: React.FC = () => {
   const ninos0a12V = ninos0a12.filter(m => m.sexo === 'Masculino').length;
   const ninos0a12M = ninos0a12.filter(m => m.sexo === 'Femenino').length;
 
-  // --- VARIABLES PARA CONTROLES GRÁFICOS INTERACTIVOS ---
+  // VARIABLES PARA CONTROLES GRÁFICOS INTERACTIVOS
   const totalMiembros = miembros.length || 1;
   const pctBautizados = Math.round((bautizados.length / totalMiembros) * 100);
   const pctNoBautizados = Math.round((noBautizados.length / totalMiembros) * 100);
@@ -58,7 +57,7 @@ export const Dashboard: React.FC = () => {
   const pctVarones = Math.round((totalVarones / totalMiembros) * 100);
   const pctMujeres = Math.round((totalMujeres / totalMiembros) * 100);
 
-  // Datos para el gráfico de barras ajustados a la paleta de colores Celeste y Blanco
+  // Datos para el gráfico de barras ajustados a la paleta de colorres
   const dataBarrasEdades = [
     { key: 0, rango: 'Niños (0-12)', total: ninos0a12.length, varones: ninos0a12V, mujeres: ninos0a12M, color: '#bae6fd', hoverColor: '#7dd3fc', bgClass: 'bg-sky-200' }, 
     { key: 1, rango: 'Adolescentes', total: adolescentes13a17.length, varones: adolescentes13a17V, mujeres: adolescentes13a17M, color: '#7dd3fc', hoverColor: '#38bdf8', bgClass: 'bg-sky-300' }, 
@@ -68,35 +67,32 @@ export const Dashboard: React.FC = () => {
   ];
 
   const maxValorGrupo = Math.max(...dataBarrasEdades.map(d => d.total), 1);
-
   // OBTENER LAS 5 ACTIVIDADES DE LA SEMANA PRINCIPAL
   const cincoActividades = actividades.slice(0, 5);
-
   // OBTENER LOS 5 GRUPOS DE CRECIMIENTO DE LA REUNIÓN SEMANAL
   const cincoGrupos = grupos.slice(0, 5);
 
   return (
     <div className="space-y-6 font-sans text-black">
-      
-      {/* BANNER SIMPLIFICADO CON NUEVA PALETA DE COLORES CELESTE Y BLANCO */}
+      {/* BANNER CON PALETA DE COLORES CELESTE Y BLANCO */}
       <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm relative overflow-hidden border-l-8 border-[#0ea5e9]">
         <div className="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
           <Church className="w-80 h-80 text-sky-200" style={{ color: '#bae6fd' }} />
         </div>
         <div className="relative z-10 max-w-3xl">
           <span className="bg-slate-100 border border-slate-205 font-mono text-[10.5px] px-3 py-1 rounded-full uppercase tracking-wider font-semibold inline-block" style={{ color: '#263238' }}>
-            Templo Principal Filadelfia · Gestión Sencilla
+            Dashboard Principal · Administración General
           </span>
           <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight mt-3" style={{ color: '#263238' }}>
-            Plataforma Iglesia Filadelfia
+            Iglesia Filadelfia
           </h1>
           <p className="mt-2 text-xs md:text-sm leading-relaxed font-semibold font-sans" style={{ color: '#263238' }}>
-            Consola simplificada para control de membresía activa, pastoral familiar, visitas, actividades semanales y control general.
+            Panel General · Resumen completo de miembros · Resumen de ministerios y grupos · Estadísticas
           </p>
         </div>
       </div>
 
-      {/* REQUERIMIENTO: MISIÓN Y VISIÓN DE LA IGLESIA */}
+      {/* MISIÓN Y VISIÓN DE LA IGLESIA */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between">
           <div>
@@ -110,7 +106,7 @@ export const Dashboard: React.FC = () => {
               "Proclamar el evangelio de Jesucristo a toda persona, discipular a los creyentes para lograr su madurez espiritual en la fe, y servir a nuestra comunidad con amor."
             </p>
           </div>
-          <div className="border-t border-slate-100 pt-2 mt-3 text-[10px] text-slate-800 font-mono">
+          <div className="border-t border-slate-100 pt-2 mt-3 text-[11px] text-slate-800 font-mono">
             IGLESIA FILADELFIA · MARCOS 16:15
           </div>
         </div>
@@ -127,7 +123,7 @@ export const Dashboard: React.FC = () => {
               "Ser una iglesia unida y multiplicadora comprometida con la transformación integral mediante la expansión orgánica de células y ministerios."
             </p>
           </div>
-          <div className="border-t border-slate-100 pt-2 mt-3 text-[10px] text-slate-800 font-mono">
+          <div className="border-t border-slate-100 pt-2 mt-3 text-[11px] text-slate-800 font-mono">
             IGLESIA FILADELFIA · HECHOS 1:8
           </div>
         </div>
@@ -137,7 +133,7 @@ export const Dashboard: React.FC = () => {
       <div>
         <h2 className="text-base font-extrabold text-black mb-4 flex items-center space-x-2">
           <Layers className="w-4 h-4 text-black" />
-          <span>Evolución Demográfica de Membresía</span>
+          <span>Resumen numérico por categorías</span>
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -175,7 +171,7 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
             <div className="bg-[#ffa100] px-4 py-2 text-white text-[11px] font-medium flex items-center justify-between">
-              <span>{pctBautizados}% oficial</span>
+              <span>{pctBautizados}% total de miembros</span>
               <TrendingUp className="w-3.5 h-3.5 text-white" />
             </div>
           </div>
@@ -187,14 +183,14 @@ export const Dashboard: React.FC = () => {
                 <h4 className="text-[#e53935] text-2xl font-extrabold tracking-tight font-sans">
                   {noBautizados.length}
                 </h4>
-                <p className="text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">En Formación</p>
+                <p className="text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">No Bautizados</p>
               </div>
               <div className="bg-red-50 p-2.5 rounded-full">
                 <Flame className="w-5 h-5 text-[#e53935]" />
               </div>
             </div>
             <div className="bg-[#e53935] px-4 py-2 text-white text-[11px] font-medium flex items-center justify-between">
-              <span>{pctNoBautizados}% en cursos</span>
+              <span>{pctNoBautizados}% total de miembros</span>
               <TrendingUp className="w-3.5 h-3.5 text-white" />
             </div>
           </div>
@@ -213,7 +209,7 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
             <div className="bg-[#4caf50] px-4 py-2 text-white text-[11px] font-medium flex items-center justify-between">
-              <span>Dominical activa</span>
+              <span>Personas de otra Iglesias</span>
               <TrendingUp className="w-3.5 h-3.5 text-white" />
             </div>
           </div>
@@ -232,7 +228,7 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
             <div className="bg-[#1e88e5] px-4 py-2 text-white text-[11px] font-medium flex items-center justify-between">
-              <span>Sabiduría activa</span>
+              <span>Hermanos mayores</span>
               <TrendingUp className="w-3.5 h-3.5 text-white" />
             </div>
           </div>
@@ -272,7 +268,7 @@ export const Dashboard: React.FC = () => {
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center space-x-1.5">
                 <BarChart2 className="w-3.5 h-3.5 text-slate-500" />
-                <span>Edades</span>
+                <span>Datos por edades</span>
               </h3>
             </div>
 
@@ -311,11 +307,9 @@ export const Dashboard: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-4 pt-1">
               
-              {/* Círculo 1: Bautizados */}
+              {/* Círculo de  Bautizados */}
               <div className="flex flex-col items-center bg-slate-50 border border-slate-100 p-3.5 rounded-xl text-center">
                 <span className="text-[10px] uppercase font-bold text-slate-500 mb-2.5">Bautizados</span>
-                
-                {/* Visual SVG Circle */}
                 <div className="relative w-16 h-16 flex items-center justify-center">
                   <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                     <circle 
@@ -353,11 +347,9 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Círculo 2: Género */}
+              {/* Círculo Género */}
               <div className="flex flex-col items-center bg-slate-50 border border-slate-100 p-3.5 rounded-xl text-center">
                 <span className="text-[10px] uppercase font-bold text-slate-500 mb-2.5">Varones</span>
-                
-                {/* Visual SVG Circle */}
                 <div className="relative w-16 h-16 flex items-center justify-center">
                   <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                     <circle 
@@ -375,14 +367,12 @@ export const Dashboard: React.FC = () => {
                       fill="none" 
                       stroke="#0284c7" 
                       strokeWidth="3.2" 
-                      strokeDasharray={`${pctVarones} 100`}
-                    />
+                      strokeDasharray={`${pctVarones} 100`}/>
                   </svg>
                   <div className="absolute flex items-center justify-center">
                     <span className="text-xs font-black text-slate-800">{pctVarones}%</span>
                   </div>
                 </div>
-
                 <div className="mt-3.5 text-[10.5px] font-mono text-slate-700 w-full space-y-0.5">
                   <div className="flex justify-between border-b border-dashed border-slate-200 pb-0.5">
                     <span>Varones (V):</span>
@@ -394,11 +384,9 @@ export const Dashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
-
       </div>
 
       {/* REQUERIMIENTOS ESPECIALES DE REUNIONES Y ACTIVIDADES SEMANALES */}
@@ -409,7 +397,7 @@ export const Dashboard: React.FC = () => {
           <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
             <h3 className="text-lg font-bold text-slate-900 flex items-center space-x-2">
               <CalendarDays className="w-5 h-5 text-indigo-600" />
-              <span>Actividades Importantes de la Semana</span>
+              <span>Actividades proximas de esta semana</span>
             </h3>
             <span className="bg-indigo-50 text-indigo-600 font-mono text-xs px-2.5 py-1 rounded-lg font-bold">
               5 Programadas
@@ -420,8 +408,7 @@ export const Dashboard: React.FC = () => {
             {cincoActividades.map((act, index) => (
               <div 
                 key={act.id_actividad || index}
-                className="bg-slate-50 rounded-xl p-4 border border-slate-200 hover:border-indigo-200 transition-colors flex flex-col md:flex-row md:items-center md:justify-between text-sm"
-              >
+                className="bg-slate-50 rounded-xl p-4 border border-slate-200 hover:border-indigo-200 transition-colors flex flex-col md:flex-row md:items-center md:justify-between text-sm">
                 <div className="space-y-1">
                   <div className="flex items-center space-x-2">
                     <span className="bg-slate-200 text-slate-700 font-bold px-2 py-0.5 rounded text-[10px] font-mono whitespace-nowrap">
@@ -435,8 +422,7 @@ export const Dashboard: React.FC = () => {
                 <div className="mt-3 md:mt-0 flex items-center space-x-2">
                   <span className={`text-[10px] font-bold px-2.5 py-0.75 rounded-full uppercase tracking-wider font-mono ${
                     act.estado === 'realizado' ? 'bg-emerald-100 text-emerald-800' :
-                    act.estado === 'cancelado' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
-                  }`}>
+                    act.estado === 'cancelado' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'}`}>
                     {act.estado}
                   </span>
                 </div>
@@ -450,7 +436,7 @@ export const Dashboard: React.FC = () => {
           <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
             <h3 className="text-lg font-bold text-slate-900 flex items-center space-x-2">
               <Flame className="w-5 h-5 text-amber-500" />
-              <span>Células / Grupos de Crecimiento</span>
+              <span>Datos de lideres de Grupo</span>
             </h3>
             <span className="bg-amber-50 text-amber-700 font-mono text-xs px-2.5 py-1 rounded-lg font-bold">
               5 Reuniones Activas
@@ -461,8 +447,7 @@ export const Dashboard: React.FC = () => {
             {cincoGrupos.map((g, index) => (
               <div 
                 key={g.id_grupo || index}
-                className="bg-slate-50 rounded-xl p-4 border border-slate-200 hover:border-amber-200 transition-colors flex flex-col md:flex-row md:items-center md:justify-between text-sm"
-              >
+                className="bg-slate-50 rounded-xl p-4 border border-slate-200 hover:border-amber-200 transition-colors flex flex-col md:flex-row md:items-center md:justify-between text-sm">
                 <div className="space-y-1">
                   <div className="flex items-center space-x-2">
                     <span className="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded text-[10px] font-mono whitespace-nowrap">
@@ -481,9 +466,7 @@ export const Dashboard: React.FC = () => {
             ))}
           </div>
         </div>
-
       </div>
-
     </div>
   );
 };

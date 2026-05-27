@@ -1,5 +1,4 @@
-// ESTE COMPONENTE ADMINISTRA EL CICLO DE VIDA CRUD PARA LA TABLA ACTIVIDADES DIARIAS/SEMANALES
-// CONECTADO CON EL CONTEXTO GLOBAL PARA ASOCIAR LOS SACRAMENTOS DE CÉLULAS Y MINISTERIOS ORGANIZATIVOS
+// ESTE COMPONENTE ADMINISTRA EL CICLO DE VIDA CRUD PARA LA TABLA ACTIVIDADES DEL AÑO
 
 import React, { useState } from 'react';
 import { useApp } from '../contextos/AppContexto';
@@ -24,18 +23,18 @@ const obtenerNombreMesYAnio = (fechaStr: string) => {
 export const ActividadesTab: React.FC = () => {
   const { actividades, crearActividad, actualizarActividad, eliminarActividad, ministerios } = useApp();
 
-  // --- ESTADOS NAVEGACIÓN FORMULARIO ---
+  // ESTADOS NAVEGACIÓN FORMULARIO
   const [modalAbierto, setModalAbierto] = useState<boolean>(false);
   const [modoEdicion, setModoEdicion] = useState<boolean>(false);
   const [actividadSeleccionadaId, setActividadSeleccionadaId] = useState<number | null>(null);
 
-  // --- DETALLE ---
+  // DETALLE
   const [actVerDetalle, setActVerDetalle] = useState<Actividad | null>(null);
 
-  // --- REPORTE PDF ---
+  // REPORTE PDF
   const [reportePdfAbierto, setReportePdfAbierto] = useState<boolean>(false);
 
-  // --- BUSCADOR ---
+  // BUSCADOR
   const [filtroTexto, setFiltroTexto] = useState<string>('');
 
   // --- CAMPOS FORM ACTIVIDADES (PDF) ---

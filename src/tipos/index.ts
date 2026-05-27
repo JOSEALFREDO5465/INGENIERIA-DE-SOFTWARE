@@ -1,5 +1,4 @@
 // ESTE ARCHIVO DEFINE LOS TIPOS DE DATOS DE LA APLICACIÓN BASADO ESTRICTAMENTE EN EL DICCIONARIO DE DATOS DEL PDF.
-
 // ESTA ES LA ESTRUCTURA DE LA TABLA: USUARIO
 export interface Usuario {
   id_usuario: number;
@@ -42,8 +41,8 @@ export interface Miembro {
   
   // NUEVOS CAMPOS REQUERIDOS POR EL USUARIO
   grupo_categoria?: 'Ninguno' | 'Jóvenes' | 'Mayores';
-  cursos_discipulado?: string[]; // Casillas check: '101', '201', '301', '401', '501'
-  ministerios_activos?: string[]; // Máximo 3 ministerios seleccionados (ej: DISIMULADO, COMUNION, ADORACION, EVANGELISMO)
+  cursos_discipulado?: string[]; // Casillas: '101', '201', '301', '401', '501'
+  ministerios_activos?: string[]; // Máximo 3 ministerios
 }
 
 // ESTA ES LA ESTRUCTURA DE LA TABLA: MINISTERIOS

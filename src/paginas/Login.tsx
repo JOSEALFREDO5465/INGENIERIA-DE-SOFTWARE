@@ -1,12 +1,14 @@
 // ESTE COMPONENTE CONTIENE LA VISTA DE ACCESO AL SISTEMA (LOGIN)
-// ADEMÁS INCLUYE LA OPCIÓN REQUERIDA PARA "SOLICITAR CUENTA" (SOLICITUD BAJO EVALUACIÓN ADMINISTRATIVA)
+// ADEMÁS INCLUYE LA OPCIÓN REQUERIDA PARA "SOLICITAR CUENTA" 
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Church, Lock, User, Mail, UserPlus, ArrowLeft, ArrowRight, CheckCircle, ShieldAlert } from 'lucide-react';
 import { useApp } from '../contextos/AppContexto';
 
 export const Login: React.FC = () => {
   const { iniciarSesion, solicitarCuenta } = useApp();
+  const navigate = useNavigate();
 
   // ESTADOS PARA INTERFAZ DE LOGIN O INTERFAZ DE SOLICITUD
   const [esModoSolicitud, setEsModoSolicitud] = useState<boolean>(false);
@@ -40,6 +42,9 @@ export const Login: React.FC = () => {
     const resultado = await iniciarSesion(username.trim(), password);
     if (!resultado.succes) {
       setMensajeError(resultado.message);
+    } else {
+      // Navegar a dashboard después de login exitoso
+      navigate('/dashboard');
     }
   };
 
@@ -89,17 +94,15 @@ export const Login: React.FC = () => {
  
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         <div className="flex justify-center">
-          <div className="bg-[#0ea5e9] p-3.5 rounded-2xl shadow-sm flex items-center justify-center">
-            <Church className="w-10 h-10 text-white" />
-          </div>
+          <img src="/src/img/logo.png" alt="Logo Iglesia Centro Evangélico Filadelfia" className="w-24 h-24 object-contain"/>
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-black tracking-tight animate-fade-in">
-          Iglesia Filadelfia
+          Iglesia Centro Evagelistico Filadelfia
         </h2>
         <p className="mt-2 text-center text-sm text-[#0284c7] font-semibold">
           {esModoSolicitud 
-            ? 'Formulario de Solicitud de Cuenta para Colaboradores' 
-            : 'Sistema Web de Control y Gestión Eclesiástica'
+            ? 'Formulario de Solicitud de Cuenta' 
+            : 'Una Iglesia con proposito'
           }
         </p>
       </div>
@@ -122,11 +125,11 @@ export const Login: React.FC = () => {
           )}
  
           {!esModoSolicitud ? (
-            /* INTERFAZ FORMULARIO DE INICIO DE SESIÓN */
+            /* FORMULARIO DE INICIO DE SESIÓN */
             <form className="space-y-6" onSubmit={manejarAcceso}>
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-black">
-                  Usuario o Correo Electrónico
+                  ingrese su Usuario:
                 </label>
                 <div className="mt-1 relative rounded-md">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -136,7 +139,7 @@ export const Login: React.FC = () => {
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder="ejemplo: admin, pastor@filadelfia.org"
+                    placeholder="Ingrese su nombre de usuario"
                     className="block w-full pl-10 pr-3 py-2.5 bg-white border-2 border-[#bae6fd] rounded-xl text-black placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0ea5e9] focus:border-[#0ea5e9] sm:text-sm"
                   />
                 </div>
@@ -144,7 +147,7 @@ export const Login: React.FC = () => {
  
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-black">
-                  Contraseña de Acceso
+                  Contraseña:
                 </label>
                 <div className="mt-1 relative rounded-md">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -154,7 +157,7 @@ export const Login: React.FC = () => {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
+                    placeholder="Ingrese su contraseña"
                     className="block w-full pl-10 pr-3 py-2.5 bg-white border-2 border-[#bae6fd] rounded-xl text-black placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0ea5e9] focus:border-[#0ea5e9] sm:text-sm"
                   />
                 </div>
@@ -171,7 +174,7 @@ export const Login: React.FC = () => {
               </div>
  
               <div className="border-t border-slate-200 pt-5 text-center">
-                <span className="text-xs text-black block mb-2 font-semibold">¿No tienes credenciales asignadas?</span>
+                <span className="text-xs text-black block mb-2 font-semibold">Si quieres crear una cuenta solicita una aquí</span>
                 <button
                   type="button"
                   onClick={() => {
@@ -182,7 +185,7 @@ export const Login: React.FC = () => {
                   className="w-full flex items-center justify-center space-x-1.5 text-xs text-[#0ea5e9] hover:bg-[#e0f2fe] font-bold transition-colors py-2 bg-[#f0f9ff] rounded-xl border-2 border-[#bae6fd] cursor-pointer"
                 >
                   <UserPlus className="w-3.5 h-3.5" />
-                  <span>Solicitar una Cuenta Nueva</span>
+                  <span>Solicitar una Cuenta</span>
                 </button>
               </div>
             </form>
@@ -194,43 +197,31 @@ export const Login: React.FC = () => {
                   Nombres y Apellidos Completos
                 </label>
                 <input
-                  type="text"
-                  required
-                  value={solNombre}
-                  onChange={(e) => setSolNombre(e.target.value)}
-                  placeholder="ejemplo: Juan Manuel Siles"
+                  type="text" required value={solNombre} onChange={(e) => setSolNombre(e.target.value)} placeholder="Nombre y Apellidos Completos"
                   className="mt-1 block w-full px-3 py-2 bg-white border-2 border-[#bae6fd] rounded-xl text-black placeholder-slate-400 text-sm focus:ring-2 focus:ring-[#0ea5e9] focus:outline-none"
                 />
               </div>
  
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-black">
-                  Nombre de Usuario (Login)
+                  Ingrese un nombre de Usuario
                 </label>
                 <input
-                  type="text"
-                  required
-                  value={solUser}
-                  onChange={(e) => setSolUser(e.target.value)}
-                  placeholder="ejemplo: juan_lider"
+                  type="text" required value={solUser} onChange={(e) => setSolUser(e.target.value)} placeholder="Nombre de usuario"
                   className="mt-1 block w-full px-3 py-2 bg-white border-2 border-[#bae6fd] rounded-xl text-black placeholder-slate-400 text-sm focus:ring-2 focus:ring-[#0ea5e9] focus:outline-none"
                 />
               </div>
  
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-black">
-                  Correo Electrónico Único
+                  Correo Electrónico
                 </label>
                 <div className="mt-1 relative rounded-md">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Mail className="h-4 w-4 text-[#0284c7]" />
                   </div>
                   <input
-                    type="email"
-                    required
-                    value={solCorreo}
-                    onChange={(e) => setSolCorreo(e.target.value)}
-                    placeholder="juan@filadelfia.org"
+                    type="email" required value={solCorreo} onChange={(e) => setSolCorreo(e.target.value)} placeholder="Ingrese un correo electrónico"
                     className="block w-full pl-9 pr-3 py-2 bg-white border-2 border-[#bae6fd] rounded-xl text-black placeholder-slate-400 text-sm focus:ring-2 focus:ring-[#0ea5e9] focus:outline-none"
                   />
                 </div>
@@ -239,26 +230,20 @@ export const Login: React.FC = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-black">
-                    Contraseña Nueva
+                    Ingrese su contraseña
                   </label>
                   <input
-                    type="password"
-                    required
-                    value={solPass}
-                    onChange={(e) => setSolPass(e.target.value)}
-                    placeholder="••••••••"
+                    type="password" required value={solPass} onChange={(e) => setSolPass(e.target.value)} placeholder="Ingrese una contraseña"
                     className="mt-1 block w-full px-3 py-2 bg-white border-2 border-[#bae6fd] rounded-xl text-black placeholder-slate-400 text-sm focus:ring-2 focus:ring-[#0ea5e9] focus:outline-none"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-black">
-                    Rol Operativo
+                    escoja un Rol
                   </label>
                   <select
-                    value={solRol}
-                    onChange={(e) => setSolRol(e.target.value as any)}
-                    className="mt-1 block w-full px-3 py-2 bg-white border-2 border-[#bae6fd] rounded-xl text-black text-sm focus:ring-2 focus:ring-[#0ea5e9] focus:outline-none"
-                  >
+                    value={solRol} onChange={(e) => setSolRol(e.target.value as any)}
+                    className="mt-1 block w-full px-3 py-2 bg-white border-2 border-[#bae6fd] rounded-xl text-black text-sm focus:ring-2 focus:ring-[#0ea5e9] focus:outline-none">
                     <option value="líder">Líder</option>
                     <option value="pastor">Pastor</option>
                     <option value="admin">Administrador</option>
@@ -267,7 +252,7 @@ export const Login: React.FC = () => {
               </div>
  
               <div className="pt-2 text-xs text-black bg-[#f0f9ff] p-3 rounded-xl border-2 border-[#bae6fd] font-medium leading-relaxed">
-                ⚠️ <strong>Aviso Importante:</strong> Su cuenta NO se creará inmediatamente. Sus datos serán revisados por el Administrador para su aprobación.
+                ⚠️ <strong>Aviso Importante:</strong> Su cuenta NO se creará inmediatamente. Sus datos serán revisados por un Administrador para su aprobación.
               </div>
  
               <div className="pt-2 flex space-x-3">
@@ -292,15 +277,6 @@ export const Login: React.FC = () => {
               </div>
             </form>
           )}
- 
-          {/* SECCIÓN PARA CREDENCIALES DE DEMOSTRACIÓN */}
-          <div className="mt-6 border-t border-slate-250 pt-4 text-center">
-            <span className="text-[10px] uppercase font-mono tracking-wider text-slate-800 font-bold block mb-1">Credenciales de Simulación:</span>
-            <div className="mt-1 flex flex-col gap-1.5 text-[11px] font-mono text-black font-semibold">
-              <span className="bg-[#f0f9ff] px-2 py-1 rounded-lg border-2 border-[#bae6fd]">Tito / 1234 (Administrador)</span>
-            </div>
-          </div>
- 
         </div>
       </div>
     </div>
