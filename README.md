@@ -5,5 +5,5 @@ Este proyecto es una aplicación web full-stack compuesta por un frontend en **R
 # Instalar dependencias
 npm install
 
-# Iniciar servidor unificado (NestJS on Port 3000 con Vite en tiempo real)
+# Iniciar servidor NestJS Port 3000
 npm run dev
