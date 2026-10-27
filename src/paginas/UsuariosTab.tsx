@@ -20,7 +20,7 @@ export const UsuariosTab: React.FC = () => {
   const [nombreUsuario, setNombreUsuario] = useState<string>('');
   const [correo, setCorreo] = useState<string>('');
   const [contrasena, setContrasena] = useState<string>('');
-  const [rol, setRol] = useState<'admin' | 'líder' | 'pastor'>('líder');
+  const [rol, setRol] = useState<'pastor' | 'secretaria' | 'tesorero'>('secretaria');
   const [errValidacion, setErrValidacion] = useState<string>('');
   // SEPARAR USUARIOS EN APROBADOS (ACTIVOS) Y SOLICITUDES INACTIVAS (PENDIENTES)
   const usuariosAprobados = usuarios.filter(u => u.aprobado === true && (
@@ -37,7 +37,7 @@ export const UsuariosTab: React.FC = () => {
     setNombreUsuario('');
     setCorreo('');
     setContrasena('');
-    setRol('líder');
+    setRol('secretaria');
     setErrValidacion('');
   };
 
@@ -149,7 +149,7 @@ export const UsuariosTab: React.FC = () => {
   ]);
 
   // COMPROBAMOS SI EL LOGUEADO ES EL ADMIN PRINCIPAL
-  const esAdministradorPrincipal = usuarioActual?.rol === 'admin';
+  const esAdministradorPrincipal = usuarioActual?.rol === 'pastor';
 
   return (
     <div className="space-y-8 font-sans">
@@ -276,8 +276,8 @@ export const UsuariosTab: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-slate-700 font-medium">{u.correo}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <span className={`inline-flex px-2.5 py-0.75 text-[10px] font-bold rounded-full uppercase tracking-wider ${
-                          u.rol === 'admin' ? 'bg-red-50 text-red-750 border border-red-200' :
-                          u.rol === 'pastor' ? 'bg-purple-50 text-purple-750 border border-purple-200' : 'bg-indigo-55 bg-indigo-50 text-indigo-750 border border-indigo-200'}`}>
+                          u.rol === 'pastor' ? 'bg-red-50 text-red-750 border border-red-200' :
+                          u.rol === 'secretaria' ? 'bg-purple-50 text-purple-750 border border-purple-200' : 'bg-indigo-55 bg-indigo-50 text-indigo-750 border border-indigo-200'}`}>
                           {u.rol}
                         </span>
                       </td>

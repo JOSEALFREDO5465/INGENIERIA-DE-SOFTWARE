@@ -1,4 +1,5 @@
 import { Injectable, UnauthorizedException, BadRequestException, Inject } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { UserEntity } from '../users/entities/user.entity';
 import * as bcrypt from 'bcryptjs';
@@ -7,10 +8,12 @@ import * as bcrypt from 'bcryptjs';
 export class AuthService {
   constructor(
     @Inject(UsersService)
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    @Inject(JwtService)
+    private readonly jwtService: JwtService,
   ) {}
 
-  async validateUser(usernameOrEmail: string, pass: string): Promise<UserEntity> {
+  async validateUser(usernameOrEmail: string, pass: string): Promise<{ user: UserEntity; token: string }> {
     const user = await this.usersService.findByUsernameOrEmail(usernameOrEmail);
     if (!user) {
       throw new UnauthorizedException('El usuario o correo electrónico ingresado no se encuentra registrado.');
@@ -32,7 +35,14 @@ export class AuthService {
 
     // Retrieve fresh data after update
     const freshUser = await this.usersService.findOne(user.id_usuario);
-    return freshUser!;
+    const userWithoutPassword = { ...freshUser };
+    delete (userWithoutPassword as any).contrasena;
+    const token = this.jwtService.sign({
+      sub: freshUser!.id_usuario,
+      rol: freshUser!.rol,
+      nombre_usuario: freshUser!.nombre_usuario,
+    });
+    return { user: userWithoutPassword as UserEntity, token };
   }
 
   async register(registrationData: Partial<UserEntity>): Promise<UserEntity> {

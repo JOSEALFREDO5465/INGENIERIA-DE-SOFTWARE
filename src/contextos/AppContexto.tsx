@@ -1,7 +1,15 @@
 // ESTE ARCHIVO DEFINE EL CONTEXTO GLOBAL DE LA APLICACIÓN CONECTADO AL BACKEND NESTJS
 // ADEMÁS PERMITE REALIZAR OPERACIONES CRUD COMPLETAS EN EL SERVIDOR BASADO EN LA BASE DE DATOS CONFIGURADA
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Usuario, Miembro, Ministerio, GrupoCrecimiento, Inventario, Actividad } from '../tipos';
+import {
+  Usuario,
+  Miembro,
+  Ministerio,
+  GrupoCrecimiento,
+  Inventario,
+  Actividad,
+  MovimientoEconomico,
+} from '../tipos';
 
 interface AppContextoType {
   usuarios: Usuario[];
@@ -10,6 +18,7 @@ interface AppContextoType {
   grupos: GrupoCrecimiento[];
   inventario: Inventario[];
   actividades: Actividad[];
+  movimientosEconomicos: MovimientoEconomico[];
   usuarioActual: Usuario | null;
 
   // FUNCIONALIDADES DE AUTENTICACIÓN Y SOLICITUDES
@@ -48,6 +57,10 @@ interface AppContextoType {
   crearActividad: (actividad: Omit<Actividad, 'id_actividad'>) => Promise<void>;
   actualizarActividad: (id_actividad: number, datos: Partial<Actividad>) => Promise<void>;
   eliminarActividad: (id_actividad: number) => Promise<void>;
+
+  // OPERACIONES CRUD DE MOVIMIENTOS ECONÓMICOS
+  crearMovimientoEconomico: (movimiento: Omit<MovimientoEconomico, 'id_movimiento'>) => Promise<void>;
+  eliminarMovimientoEconomico: (id_movimiento: number) => Promise<void>;
 }
 
 const AppContexto = createContext<AppContextoType | undefined>(undefined);
@@ -59,6 +72,9 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [grupos, setGrupos] = useState<GrupoCrecimiento[]>([]);
   const [inventario, setInventario] = useState<Inventario[]>([]);
   const [actividades, setActividades] = useState<Actividad[]>([]);
+  const [movimientosEconomicos, setMovimientosEconomicos] = useState<MovimientoEconomico[]>([]);
+
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('filadelfia_v2_token'));
 
   const [usuarioActual, setUsuarioActual] = useState<Usuario | null>(() => {
     const data = localStorage.getItem('filadelfia_v2_usuario_actual');
@@ -72,26 +88,39 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return null;
   });
 
+  const authHeaders = () => ({
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  });
+
   // CARGAR REGISTROS DINÁMICOS DESDE EL BACKEND AL COMPLETAR AUTENTICACIÓN
   const cargarDatosServidor = async () => {
     try {
-      const resMiembros = await fetch('/api/members');
-      if (resMiembros.ok) setMiembros(await resMiembros.json());
+      const headers = authHeaders();
+      const responses = await Promise.all([
+        fetch('/api/members', { headers }),
+        fetch('/api/ministries', { headers }),
+        fetch('/api/groups', { headers }),
+        fetch('/api/inventory', { headers }),
+        fetch('/api/activities', { headers }),
+        fetch('/api/economic', { headers }),
+        fetch('/api/users', { headers }),
+      ]);
 
-      const resMin = await fetch('/api/ministries');
-      if (resMin.ok) setMinisterios(await resMin.json());
+      // Si cualquier respuesta es 401, la sesión expiró o es inválida
+      if (responses.some((r) => r.status === 401)) {
+        setUsuarioActual(null);
+        setToken(null);
+        return;
+      }
 
-      const resGrupos = await fetch('/api/groups');
-      if (resGrupos.ok) setGrupos(await resGrupos.json());
-
-      const resInv = await fetch('/api/inventory');
-      if (resInv.ok) setInventario(await resInv.json());
-
-      const resAct = await fetch('/api/activities');
-      if (resAct.ok) setActividades(await resAct.json());
-
-      const resUsers = await fetch('/api/users');
-      if (resUsers.ok) setUsuarios(await resUsers.json());
+      if (responses[0].ok) setMiembros(await responses[0].json());
+      if (responses[1].ok) setMinisterios(await responses[1].json());
+      if (responses[2].ok) setGrupos(await responses[2].json());
+      if (responses[3].ok) setInventario(await responses[3].json());
+      if (responses[4].ok) setActividades(await responses[4].json());
+      if (responses[5].ok) setMovimientosEconomicos(await responses[5].json());
+      if (responses[6].ok) setUsuarios(await responses[6].json());
     } catch (e) {
       console.error('Error al poblar datos desde el backend:', e);
     }
@@ -99,12 +128,19 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   useEffect(() => {
     if (usuarioActual) {
+      if (!token) {
+        // Sesión antigua sin token JWT: forzar re-login
+        setUsuarioActual(null);
+        return;
+      }
       cargarDatosServidor();
       localStorage.setItem('filadelfia_v2_usuario_actual', JSON.stringify(usuarioActual));
+      localStorage.setItem('filadelfia_v2_token', token);
     } else {
       localStorage.removeItem('filadelfia_v2_usuario_actual');
+      localStorage.removeItem('filadelfia_v2_token');
     }
-  }, [usuarioActual]);
+  }, [usuarioActual, token]);
 
   // FUNCIONES DE REGISTRO E INICIO DE SESIÓN
   const iniciarSesion = async (nombre_usuario: string, contrasena: string) => {
@@ -117,6 +153,7 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
       const data = await response.json();
       if (data.success && data.user) {
         setUsuarioActual(data.user);
+        if (data.token) setToken(data.token);
         return { succes: true, message: data.message };
       }
       return { succes: false, message: data.message || 'Error al iniciar sesión' };
@@ -127,13 +164,15 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const cerrarSesion = () => {
     setUsuarioActual(null);
+    setToken(null);
+    localStorage.removeItem('filadelfia_v2_token');
   };
 
   const solicitarCuenta = async (nuevoUser: Omit<Usuario, 'id_usuario' | 'fecha_registro' | 'ultimo_acceso' | 'aprobado'>) => {
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(nuevoUser),
       });
       const data = await response.json();
@@ -151,7 +190,7 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const aprobarUsuario = async (id: number) => {
     try {
-      const response = await fetch(`/api/users/${id}/approve`, { method: 'POST' });
+      const response = await fetch(`/api/users/${id}/approve`, { method: 'POST', headers: authHeaders() });
       if (response.ok) {
         const approved = await response.json();
         setUsuarios(prev => prev.map(u => u.id_usuario === id ? approved : u));
@@ -163,7 +202,7 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const rechazarUsuario = async (id: number) => {
     try {
-      const response = await fetch(`/api/users/${id}/reject`, { method: 'POST' });
+      const response = await fetch(`/api/users/${id}/reject`, { method: 'POST', headers: authHeaders() });
       if (response.ok) {
         setUsuarios(prev => prev.filter(u => u.id_usuario !== id));
       }
@@ -177,7 +216,7 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       const response = await fetch('/api/users', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(u),
       });
       if (response.ok) {
@@ -193,7 +232,7 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       const response = await fetch(`/api/users/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(datos),
       });
       if (response.ok) {
@@ -210,7 +249,7 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const eliminarUsuario = async (id: number) => {
     try {
-      const response = await fetch(`/api/users/${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/users/${id}`, { method: 'DELETE', headers: authHeaders() });
       if (response.ok) {
         setUsuarios(prev => prev.filter(u => u.id_usuario !== id));
         if (usuarioActual && usuarioActual.id_usuario === id) {
@@ -227,7 +266,7 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       const response = await fetch('/api/members', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(m),
       });
       if (response.ok) {
@@ -243,7 +282,7 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       const response = await fetch(`/api/members/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(datos),
       });
       if (response.ok) {
@@ -257,7 +296,7 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const eliminarMiembro = async (id: number) => {
     try {
-      const response = await fetch(`/api/members/${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/members/${id}`, { method: 'DELETE', headers: authHeaders() });
       if (response.ok) {
         setMiembros(prev => prev.filter(m => m.id_miembro !== id));
       }
@@ -271,7 +310,7 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       const response = await fetch('/api/ministries', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(min),
       });
       if (response.ok) {
@@ -287,7 +326,7 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       const response = await fetch(`/api/ministries/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(datos),
       });
       if (response.ok) {
@@ -301,7 +340,7 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const eliminarMinisterio = async (id: number) => {
     try {
-      const response = await fetch(`/api/ministries/${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/ministries/${id}`, { method: 'DELETE', headers: authHeaders() });
       if (response.ok) {
         setMinisterios(prev => prev.filter(min => min.id_ministerio !== id));
       }
@@ -315,7 +354,7 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       const response = await fetch('/api/groups', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(g),
       });
       if (response.ok) {
@@ -331,7 +370,7 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       const response = await fetch(`/api/groups/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(datos),
       });
       if (response.ok) {
@@ -345,7 +384,7 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const eliminarGrupo = async (id: number) => {
     try {
-      const response = await fetch(`/api/groups/${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/groups/${id}`, { method: 'DELETE', headers: authHeaders() });
       if (response.ok) {
         setGrupos(prev => prev.filter(g => g.id_grupo !== id));
       }
@@ -359,7 +398,7 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       const response = await fetch('/api/inventory', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(item),
       });
       if (response.ok) {
@@ -375,7 +414,7 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       const response = await fetch(`/api/inventory/${codigo}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(datos),
       });
       if (response.ok) {
@@ -389,7 +428,7 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const eliminarInventario = async (codigo: string) => {
     try {
-      const response = await fetch(`/api/inventory/${codigo}`, { method: 'DELETE' });
+      const response = await fetch(`/api/inventory/${codigo}`, { method: 'DELETE', headers: authHeaders() });
       if (response.ok) {
         setInventario(prev => prev.filter(item => String(item.codigo) !== String(codigo)));
       }
@@ -403,7 +442,7 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       const response = await fetch('/api/activities', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(act),
       });
       if (response.ok) {
@@ -419,7 +458,7 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       const response = await fetch(`/api/activities/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(datos),
       });
       if (response.ok) {
@@ -433,9 +472,36 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const eliminarActividad = async (id: number) => {
     try {
-      const response = await fetch(`/api/activities/${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/activities/${id}`, { method: 'DELETE', headers: authHeaders() });
       if (response.ok) {
         setActividades(prev => prev.filter(act => act.id_actividad !== id));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const crearMovimientoEconomico = async (movimiento: Omit<MovimientoEconomico, 'id_movimiento'>) => {
+    try {
+      const response = await fetch('/api/economic', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify(movimiento),
+      });
+      if (response.ok) {
+        const created = await response.json();
+        setMovimientosEconomicos(prev => [created, ...prev]);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const eliminarMovimientoEconomico = async (id: number) => {
+    try {
+      const response = await fetch(`/api/economic/${id}`, { method: 'DELETE', headers: authHeaders() });
+      if (response.ok) {
+        setMovimientosEconomicos(prev => prev.filter(m => m.id_movimiento !== id));
       }
     } catch (e) {
       console.error(e);
@@ -450,6 +516,7 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
       grupos,
       inventario,
       actividades,
+      movimientosEconomicos,
       usuarioActual,
       iniciarSesion,
       cerrarSesion,
@@ -473,7 +540,9 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
       eliminarInventario,
       crearActividad,
       actualizarActividad,
-      eliminarActividad
+      eliminarActividad,
+      crearMovimientoEconomico,
+      eliminarMovimientoEconomico
     }}>
       {children}
     </AppContexto.Provider>

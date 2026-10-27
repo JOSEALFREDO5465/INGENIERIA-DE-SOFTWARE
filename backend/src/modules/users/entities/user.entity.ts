@@ -23,8 +23,8 @@ export class UserEntity {
   @Column({ name: 'ultimo_acceso', type: 'varchar', default: '' })
   ultimo_acceso: string;
 
-  @Column({ name: 'rol', type: 'varchar', default: 'líder' })
-  rol: 'admin' | 'líder' | 'pastor';
+  @Column({ name: 'rol', type: 'varchar', default: 'secretaria' })
+  rol: 'pastor' | 'secretaria' | 'tesorero';
 
   @Column({ name: 'aprobado', type: 'boolean', default: false })
   aprobado: boolean;

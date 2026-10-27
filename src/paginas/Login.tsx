@@ -22,7 +22,7 @@ export const Login: React.FC = () => {
   const [solUser, setSolUser] = useState<string>('');
   const [solCorreo, setSolCorreo] = useState<string>('');
   const [solPass, setSolPass] = useState<string>('');
-  const [solRol, setSolRol] = useState<'admin' | 'líder' | 'pastor'>('líder');
+  const [solRol, setSolRol] = useState<'pastor' | 'secretaria' | 'tesorero'>('secretaria');
 
   // MENSAJES Y NOTIFICACIONES
   const [mensajeError, setMensajeError] = useState<string>('');
@@ -34,12 +34,14 @@ export const Login: React.FC = () => {
     setMensajeError('');
     setMensajeExito('');
 
+
     if (!username.trim() || !password.trim()) {
       setMensajeError('Por favor complete todos los datos de inicio de sesión.');
       return;
     }
 
     const resultado = await iniciarSesion(username.trim(), password);
+
     if (!resultado.succes) {
       setMensajeError(resultado.message);
     } else {
@@ -74,7 +76,7 @@ export const Login: React.FC = () => {
       setSolUser('');
       setSolCorreo('');
       setSolPass('');
-      setSolRol('líder');
+      setSolRol('secretaria');
       // VOLVER AL LOGIN DESPUÉS DE UN SEGUNDO
       setTimeout(() => {
         setEsModoSolicitud(false);
@@ -244,9 +246,9 @@ export const Login: React.FC = () => {
                   <select
                     value={solRol} onChange={(e) => setSolRol(e.target.value as any)}
                     className="mt-1 block w-full px-3 py-2 bg-white border-2 border-[#bae6fd] rounded-xl text-black text-sm focus:ring-2 focus:ring-[#0ea5e9] focus:outline-none">
-                    <option value="líder">Líder</option>
+                    <option value="secretaria">Secretaría</option>
                     <option value="pastor">Pastor</option>
-                    <option value="admin">Administrador</option>
+                    <option value="tesorero">Tesorero</option>
                   </select>
                 </div>
               </div>

@@ -486,9 +486,10 @@ export const GruposTab: React.FC = () => {
                               <span className="text-[10px] text-slate-450 font-mono mt-0.5">Código Único: #{i.codigo}</span>
                             </div>
                             <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
-                              i.estado === 'Nuevo' ? 'bg-indigo-100 text-indigo-700' :
-                              i.estado === 'Bueno' ? 'bg-emerald-100 text-emerald-700' :
-                              'bg-rose-100 text-rose-700'
+                              i.estado === 'disponible' ? 'bg-emerald-100 text-emerald-700' :
+                              i.estado === 'en_uso' ? 'bg-blue-100 text-blue-700' :
+                              i.estado === 'dano' ? 'bg-rose-100 text-rose-700' :
+                              'bg-amber-100 text-amber-700'
                             }`}>
                               Estado: {i.estado}
                             </span>

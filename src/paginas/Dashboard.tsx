@@ -412,7 +412,7 @@ export const Dashboard: React.FC = () => {
                 <div className="space-y-1">
                   <div className="flex items-center space-x-2">
                     <span className="bg-slate-200 text-slate-700 font-bold px-2 py-0.5 rounded text-[10px] font-mono whitespace-nowrap">
-                      {act.fecha} - {act.hora}
+                      {act.fecha} - {act.hora_inicio || '-'}
                     </span>
                     <h4 className="font-bold text-slate-800">{act.actividad}</h4>
                   </div>

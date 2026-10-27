@@ -12,15 +12,15 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: { nombre_usuario: string; contrasena: string }) {
     try {
-      console.log('DEBUG: AuthController.login this.authService exists?', !!this.authService);
-      const user = await this.authService.validateUser(
+      const result = await this.authService.validateUser(
         loginDto.nombre_usuario,
         loginDto.contrasena,
       );
       return {
         success: true,
         message: 'Ingreso autorizado satisfactoriamente.',
-        user,
+        user: result.user,
+        token: result.token,
       };
     } catch (e: any) {
       return {

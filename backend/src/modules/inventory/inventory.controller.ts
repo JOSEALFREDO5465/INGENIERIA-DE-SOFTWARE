@@ -1,8 +1,13 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, NotFoundException, Inject } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, NotFoundException, Inject, UseGuards } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
 import { InventoryEntity } from './entities/inventory.entity';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 
 @Controller('inventory')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('pastor', 'secretaria')
 export class InventoryController {
   constructor(
     @Inject(InventoryService)

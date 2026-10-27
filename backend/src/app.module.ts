@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt';
 import { getDatabaseConfig } from './database.config';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -9,10 +10,16 @@ import { GroupsModule } from './modules/groups/groups.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { ActivitiesModule } from './modules/activities/activities.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { EconomicModule } from './modules/economic/economic.module';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(getDatabaseConfig()),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'filadelfia-secret-key',
+      global: true,
+      signOptions: { expiresIn: '12h' },
+    }),
     UsersModule,
     AuthModule,
     MembersModule,
@@ -20,6 +27,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     GroupsModule,
     InventoryModule,
     ActivitiesModule,
+    EconomicModule,
     DashboardModule,
   ],
 })

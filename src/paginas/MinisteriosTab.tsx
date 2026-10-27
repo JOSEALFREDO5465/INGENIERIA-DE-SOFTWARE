@@ -430,8 +430,9 @@ export const MinisteriosTab: React.FC = () => {
                                 Art: #{item.codigo}
                               </span>
                               <span className={`px-2 py-0.5 text-[8px] font-black rounded uppercase ${
-                                item.estado === 'Nuevo' ? 'bg-emerald-50 text-emerald-700 border border-emerald-250' :
-                                item.estado === 'Bueno' ? 'bg-sky-50 text-sky-700 border border-sky-250' :
+                                item.estado === 'disponible' ? 'bg-emerald-50 text-emerald-700 border border-emerald-250' :
+                                item.estado === 'en_uso' ? 'bg-sky-50 text-sky-700 border border-sky-250' :
+                                item.estado === 'dano' ? 'bg-rose-50 text-rose-700 border border-rose-250' :
                                 'bg-amber-50 text-amber-700 border border-amber-250'
                               }`}>
                                 {item.estado}

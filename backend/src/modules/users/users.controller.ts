@@ -1,8 +1,13 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, ParseIntPipe, NotFoundException, Inject } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, ParseIntPipe, NotFoundException, Inject, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UserEntity } from './entities/user.entity';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 
 @Controller('users')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('pastor')
 export class UsersController {
   constructor(
     @Inject(UsersService)
@@ -13,7 +18,11 @@ export class UsersController {
 
   @Get()
   async getAllUsers(): Promise<UserEntity[]> {
-    return this.usersService.findAll();
+    const users = await this.usersService.findAll();
+    return users.map((u) => {
+      const { contrasena, ...rest } = u as any;
+      return rest as UserEntity;
+    });
   }
 
   @Post()

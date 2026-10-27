@@ -1,8 +1,13 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, ParseIntPipe, NotFoundException, Inject } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, ParseIntPipe, NotFoundException, Inject, UseGuards } from '@nestjs/common';
 import { MinistriesService } from './ministries.service';
 import { MinistryEntity } from './entities/ministry.entity';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 
 @Controller('ministries')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('pastor', 'secretaria')
 export class MinistriesController {
   constructor(
     @Inject(MinistriesService)

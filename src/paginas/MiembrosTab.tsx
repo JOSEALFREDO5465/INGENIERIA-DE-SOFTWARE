@@ -127,6 +127,8 @@ export const MiembrosTab: React.FC = () => {
   const [cursosDiscipulado, setCursosDiscipulado] = useState<string[]>([]);
   const [ministeriosActivos, setMinisteriosActivos] = useState<string[]>([]);
 
+  const puedeSeleccionarGrupo = grupoCategoria !== 'Ninguno';
+
   // ERR DE VALIDACIÓN EN PANTALLA
   const [errValidacion, setErrValidacion] = useState<string>('');
 
@@ -929,8 +931,9 @@ export const MiembrosTab: React.FC = () => {
                         <select
                           value={idGrupo || ''}
                           onChange={(e) => setIdGrupo(e.target.value ? Number(e.target.value) : null)}
-                          required={grupoCategoria !== 'Ninguno'}
+                          required={puedeSeleccionarGrupo}
                           className="mt-1 block w-full px-3 py-1.8 bg-white border border-slate-300 rounded-lg text-sm text-slate-950 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-semibold"
+                          disabled={!puedeSeleccionarGrupo}
                         >
                           <option value="">-- Seleccionar grupo --</option>
                           {(grupoCategoria === 'Jóvenes'

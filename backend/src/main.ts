@@ -38,7 +38,11 @@ async function bootstrap() {
     console.log('--- Production Mode: Serving static files from dist/ ---');
     const distPath = path.join(process.cwd(), 'dist');
     expressInstance.use(express.static(distPath));
-    expressInstance.get('*', (req: any, res: any) => {
+    // Compatible con Express 5: capturar cualquier ruta no API y servir el SPA
+    expressInstance.use((req: any, res: any) => {
+      if (req.url && req.url.startsWith('/api')) {
+        return res.status(404).json({ message: 'Ruta API no encontrada' });
+      }
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }

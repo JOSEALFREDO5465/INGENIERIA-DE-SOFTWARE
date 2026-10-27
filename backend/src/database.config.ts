@@ -6,11 +6,16 @@ import { MinistryEntity } from './modules/ministries/entities/ministry.entity';
 import { GroupEntity } from './modules/groups/entities/group.entity';
 import { InventoryEntity } from './modules/inventory/entities/inventory.entity';
 import { ActivityEntity } from './modules/activities/entities/activity.entity';
+import { EconomicMovementEntity } from './modules/economic/entities/economic-movement.entity';
 
 dotenv.config();
 
 export const getDatabaseConfig = (): any => {
-  const hasMysql = process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME;
+  const dbHost = process.env.DB_HOST || process.env.DB_HOSTNAME || 'localhost';
+  const dbUser = process.env.DB_USER || process.env.DB_USERNAME || 'root';
+  const dbPass = process.env.DB_PASSWORD || '';
+  const dbName = process.env.DB_NAME || process.env.DB_DATABASE || 'IglesiaFiladelfia';
+  const hasMysql = !!dbHost && !!dbUser && !!dbName;
 
   const entities = [
     UserEntity,
@@ -19,27 +24,28 @@ export const getDatabaseConfig = (): any => {
     GroupEntity,
     InventoryEntity,
     ActivityEntity,
+    EconomicMovementEntity,
   ];
 
   if (hasMysql) {
-    console.log('--- Connecting to MySQL Database at', process.env.DB_HOST);
+    console.log('--- Connecting to MySQL Database at', dbHost);
     return {
       type: 'mysql',
-      host: process.env.DB_HOST,
+      host: dbHost,
       port: parseInt(process.env.DB_PORT || '3306', 10),
-      username: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
+      username: dbUser,
+      password: dbPass,
+      database: dbName,
       entities,
-      synchronize: true, // Automatically synchronize schema in development / production
+      synchronize: false,
     };
   } else {
-    console.log('--- Using SQLite fallback for secure local execution...');
+    console.log('--- MySQL not configured. Using SQLite fallback for local execution...');
     return {
-      type: 'better-sqlite3',
+      type: 'sqlite',
       database: 'database.sqlite',
       entities,
-      synchronize: true,
+      synchronize: false,
     };
   }
 };

@@ -8,7 +8,7 @@ import { Plus, Search, FileText, Eye, Edit, Trash2, X, AlertTriangle } from 'luc
 import { GeneradorPDF } from '../componentes/GeneradorPDF';
 
 export const InventarioTab: React.FC = () => {
-  const { inventario, crearInventario, actualizarInventario, eliminarInventario, ministerios } = useApp();
+  const { inventario, crearInventario, actualizarInventario, eliminarInventario, ministerios, grupos } = useApp();
 
   // --- ESTADOS NAVEGACIÓN FORMULARIO ---
   const [modalAbierto, setModalAbierto] = useState<boolean>(false);
@@ -29,12 +29,14 @@ export const InventarioTab: React.FC = () => {
   const [descripcion, setDescripcion] = useState<string>('');
   const [cantidad, setCantidad] = useState<number>(1);
   const [unidad, setUnidad] = useState<'Pz' | 'Jg' | 'Mts' | 'Otro'>('Pz');
-  const [estado, setEstado] = useState<'Nuevo' | 'Bueno' | 'Mal'>('Bueno');
+  const [estado, setEstado] = useState<'disponible' | 'en_uso' | 'dano' | 'mantenimiento'>('disponible');
+  const [ubicacion, setUbicacion] = useState<string>('');
   const [precio, setPrecio] = useState<number>(0);
   const [moneda, setMoneda] = useState<'Bs' | 'Sus'>('Bs');
   const [procedencia, setProcedencia] = useState<'Comprado' | 'Donación'>('Comprado');
   const [verificacion, setVerificacion] = useState<'Sí' | 'No'>('Sí');
-  const [idMinisterio, setIdMinisterio] = useState<number>(1);
+  const [idMinisterio, setIdMinisterio] = useState<number | null>(null);
+  const [idGrupo, setIdGrupo] = useState<number | null>(null);
   const [observaciones, setObservaciones] = useState<string>('');
 
   const [errValidacion, setErrValidacion] = useState<string>('');
@@ -81,12 +83,14 @@ export const InventarioTab: React.FC = () => {
     setDescripcion('');
     setCantidad(1);
     setUnidad('Pz');
-    setEstado('Bueno');
+    setEstado('disponible');
+    setUbicacion('');
     setPrecio(0);
     setMoneda('Bs');
     setProcedencia('Comprado');
     setVerificacion('Sí');
-    setIdMinisterio(1);
+    setIdMinisterio(null);
+    setIdGrupo(null);
     setObservaciones('');
     setErrValidacion('');
   };
@@ -105,12 +109,14 @@ export const InventarioTab: React.FC = () => {
     setDescripcion(item.descripcion);
     setCantidad(item.cantidad);
     setUnidad(item.unidad || 'Pz');
-    setEstado(item.estado || 'Bueno');
+    setEstado(item.estado || 'disponible');
+    setUbicacion(item.ubicacion || '');
     setPrecio(item.precio || 0);
     setMoneda(item.moneda || 'Bs');
     setProcedencia(item.procedencia || 'Comprado');
     setVerificacion(item.verificacion || 'Sí');
-    setIdMinisterio(item.id_ministerio || 1);
+    setIdMinisterio(item.id_ministerio ?? null);
+    setIdGrupo(item.id_grupo ?? null);
     setObservaciones(item.observaciones || '');
 
     setCodigoSeleccionado(String(item.codigo));
@@ -150,11 +156,13 @@ export const InventarioTab: React.FC = () => {
       cantidad: Number(cantidad),
       unidad,
       estado,
+      ubicacion: ubicacion.trim(),
       precio: Number(precio),
       moneda,
       procedencia,
       verificacion,
-      id_ministerio: Number(idMinisterio),
+      id_ministerio: idMinisterio ?? null,
+      id_grupo: idGrupo ?? null,
       observaciones: observaciones.trim()
     };
 
@@ -176,18 +184,20 @@ export const InventarioTab: React.FC = () => {
   };
 
   // REPORTE PDF COLUMNAS
-  const columnasPdf = ['Código', 'Descripción del Artículo', 'Cant', 'Unidad', 'Estado Físico', 'Precio', 'Costo Total', 'Procedencia', 'Verificado', 'Ministerio'];
+  const columnasPdf = ['Código', 'Descripción del Artículo', 'Cant', 'Unidad', 'Estado Físico', 'Ubicación', 'Precio', 'Costo Total', 'Procedencia', 'Verificado', 'Ministerio', 'Grupo'];
   const datosPdf = inventarioFiltrado.map(item => [
     item.codigo,
     item.descripcion,
     item.cantidad,
     item.unidad,
     item.estado,
+    item.ubicacion || '-',
     `${item.precio} ${item.moneda}`,
     `${item.precio * item.cantidad} ${item.moneda}`,
     item.procedencia,
     item.verificacion,
-    ministerios?.find(m => m.id_ministerio === item.id_ministerio)?.nombre_ministerio || 'General'
+    ministerios?.find(m => m.id_ministerio === item.id_ministerio)?.nombre_ministerio || 'General',
+    item.id_grupo ? `Grupo ${item.id_grupo}` : '-'
   ]);
 
   return (
@@ -296,9 +306,10 @@ export const InventarioTab: React.FC = () => {
                           {/* ESTADO */}
                           <td className="px-4 py-4 text-center border-r border-slate-100">
                             <span className={`px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm border-2 inline-block ${
-                              item.estado === 'Nuevo' ? 'bg-emerald-600 text-white border-emerald-500' :
-                              item.estado === 'Bueno' ? 'bg-amber-400 text-amber-950 border-amber-300' : 
-                              'bg-rose-600 text-white border-rose-500'
+                              item.estado === 'disponible' ? 'bg-emerald-600 text-white border-emerald-500' :
+                              item.estado === 'en_uso' ? 'bg-blue-500 text-white border-blue-400' :
+                              item.estado === 'dano' ? 'bg-rose-600 text-white border-rose-500' :
+                              'bg-amber-500 text-white border-amber-400'
                             }`}>
                               {item.estado}
                             </span>
@@ -409,9 +420,10 @@ export const InventarioTab: React.FC = () => {
                 <div className="bg-slate-50 p-3 rounded-xl border flex flex-col justify-between">
                   <span className="block text-[9px] uppercase font-mono text-slate-400">Estado Físico</span>
                   <span className={`block text-center font-black text-[11px] uppercase tracking-widest px-3.5 py-1.5 rounded-full border-2 mt-1.5 ${
-                    itemVerDetalle.estado === 'Nuevo' ? 'bg-emerald-600 text-white border-emerald-500' :
-                    itemVerDetalle.estado === 'Bueno' ? 'bg-amber-400 text-amber-950 border-amber-300' : 
-                    'bg-rose-600 text-white border-rose-500'
+                    itemVerDetalle.estado === 'disponible' ? 'bg-emerald-600 text-white border-emerald-500' :
+                    itemVerDetalle.estado === 'en_uso' ? 'bg-blue-500 text-white border-blue-400' :
+                    itemVerDetalle.estado === 'dano' ? 'bg-rose-600 text-white border-rose-500' :
+                    'bg-amber-500 text-white border-amber-400'
                   }`}>
                     {itemVerDetalle.estado}
                   </span>
@@ -571,9 +583,10 @@ export const InventarioTab: React.FC = () => {
                     onChange={(e) => setEstado(e.target.value as any)}
                     className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-950 focus:outline-none"
                   >
-                    <option value="Nuevo">Nuevo</option>
-                    <option value="Bueno">Bueno</option>
-                    <option value="Mal">Mal</option>
+                    <option value="disponible">Disponible</option>
+                    <option value="en_uso">En Uso</option>
+                    <option value="dano">Dañado</option>
+                    <option value="mantenimiento">Mantenimiento</option>
                   </select>
                 </div>
                 <div>
@@ -599,6 +612,53 @@ export const InventarioTab: React.FC = () => {
                   <option value="Sí">Sí, Confirmada e Inspeccionada en Oficinas/Templo</option>
                   <option value="No">No / Pendiente de verificación técnica</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-slate-550 font-bold uppercase text-[10px]">Ubicación Física</label>
+                <input
+                  type="text"
+                  value={ubicacion}
+                  onChange={(e) => setUbicacion(e.target.value)}
+                  placeholder="ej: Salón principal, estante 2..."
+                  className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-550 font-bold uppercase text-[10px]">Pertenece a Ministerio</label>
+                  <select
+                    value={idMinisterio ?? ''}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setIdMinisterio(v === '' ? null : Number(v));
+                      if (v === '') setIdGrupo(null);
+                    }}
+                    className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-950 focus:outline-none"
+                  >
+                    <option value="">Ninguno</option>
+                    {(ministerios || []).map((m) => (
+                      <option key={m.id_ministerio} value={m.id_ministerio}>{m.nombre_ministerio}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-550 font-bold uppercase text-[10px]">Pertenece a Grupo de Crecimiento</label>
+                  <select
+                    value={idGrupo ?? ''}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setIdGrupo(v === '' ? null : Number(v));
+                    }}
+                    className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-950 focus:outline-none"
+                  >
+                    <option value="">Ninguno</option>
+                    {(grupos || []).map((g) => (
+                      <option key={g.id_grupo} value={g.id_grupo}>{g.nombre_grupo}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div>

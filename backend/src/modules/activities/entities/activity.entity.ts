@@ -8,14 +8,17 @@ export class ActivityEntity {
   @Column({ name: 'fecha', type: 'varchar' })
   fecha: string;
 
+  @Column({ name: 'hora_inicio', type: 'varchar' })
+  hora_inicio: string;
+
+  @Column({ name: 'hora_fin', type: 'varchar', nullable: true })
+  hora_fin: string | null;
+
   @Column({ name: 'actividad', type: 'varchar' })
   actividad: string;
 
   @Column({ name: 'proposito', type: 'varchar' })
   proposito: string;
-
-  @Column({ name: 'hora', type: 'varchar' })
-  hora: string;
 
   @Column({ name: 'responsable', type: 'varchar' })
   responsable: string;
@@ -28,6 +31,12 @@ export class ActivityEntity {
 
   @Column({ name: 'meta', type: 'text', nullable: true })
   meta: string;
+
+  @Column({ name: 'presupuesto', type: 'float', default: 0 })
+  presupuesto: number;
+
+  @Column({ name: 'costo_real', type: 'float', default: 0 })
+  costo_real: number;
 
   @Column({ name: 'id_ministerio', type: 'int' })
   id_ministerio: number;

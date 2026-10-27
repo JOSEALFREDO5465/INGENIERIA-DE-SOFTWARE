@@ -11,7 +11,8 @@ import { MinisteriosTab } from './paginas/MinisteriosTab';
 import { GruposTab } from './paginas/GruposTab';
 import { InventarioTab } from './paginas/InventarioTab';
 import { ActividadesTab } from './paginas/ActividadesTab';
-import { Church, LayoutDashboard, Users, ShieldCheck, FolderGit2, Network, Boxes, Calendar, LogOut, ChevronRight, Menu, X, Settings, Bell, Search} from 'lucide-react';
+import { EconomiaTab } from './paginas/EconomiaTab';
+import { Church, LayoutDashboard, Users, ShieldCheck, FolderGit2, Network, Boxes, Calendar, LogOut, ChevronRight, Menu, X, Settings, Bell, Search, CreditCard} from 'lucide-react';
 
 const ContenedorEstructuralSecundario: React.FC = () => {
   const { usuarioActual, cerrarSesion } = useApp();
@@ -29,6 +30,7 @@ const ContenedorEstructuralSecundario: React.FC = () => {
     if (pathname === '/grupos') return 'grupos';
     if (pathname === '/inventario') return 'inventario';
     if (pathname === '/actividades') return 'actividades';
+    if (pathname === '/economia') return 'economia';
     if (pathname === '/usuarios') return 'usuarios';
     return 'dashboard';
   };
@@ -41,15 +43,27 @@ const ContenedorEstructuralSecundario: React.FC = () => {
   }
 
   // LISTADO DE MÓDULOS DE NAVEGACIÓN EN ESPAÑOL REQUERIDOS
-  const modulosNavegacion = [
+  const todosLosModulos = [
     { id: 'dashboard', nombre: 'Dashboard', icono: LayoutDashboard },
     { id: 'miembros', nombre: 'Miembros', icono: Users },
     { id: 'ministerios', nombre: 'Ministerios', icono: FolderGit2 },
     { id: 'grupos', nombre: 'Grupos de Crecimiento', icono: Network },
     { id: 'inventario', nombre: 'Inventario', icono: Boxes },
     { id: 'actividades', nombre: 'Actividades', icono: Calendar },
-    { id: 'usuarios', nombre: 'Solicitudes', icono: ShieldCheck },
+    { id: 'economia', nombre: 'Economía', icono: CreditCard },
+    { id: 'usuarios', nombre: 'Usuarios', icono: ShieldCheck },
   ];
+
+  // CONTROL DE ACCESO POR ROL (RNF01)
+  const permisosPorRol: Record<string, string[]> = {
+    pastor: ['dashboard', 'miembros', 'ministerios', 'grupos', 'inventario', 'actividades', 'economia', 'usuarios'],
+    secretaria: ['dashboard', 'miembros', 'ministerios', 'grupos', 'inventario', 'actividades', 'usuarios'],
+    tesorero: ['dashboard', 'actividades', 'economia'],
+  };
+
+  const rolActual = usuarioActual?.rol && permisosPorRol[usuarioActual.rol] ? usuarioActual.rol : 'pastor';
+  const modulosPermitidos = permisosPorRol[rolActual] ?? ['dashboard'];
+  const modulosNavegacion = todosLosModulos.filter((m) => modulosPermitidos.includes(m.id));
 
   return (
     <div className="min-h-screen bg-[#f4f7fa] flex flex-col md:flex-row font-sans text-slate-800">
@@ -77,6 +91,7 @@ const ContenedorEstructuralSecundario: React.FC = () => {
               'grupos': '/grupos',
               'inventario': '/inventario',
               'actividades': '/actividades',
+              'economia': '/economia',
               'usuarios': '/usuarios',
             };
             return (
@@ -225,6 +240,7 @@ const ContenedorEstructuralSecundario: React.FC = () => {
           {vistaActiva === 'grupos' && <GruposTab />}
           {vistaActiva === 'inventario' && <InventarioTab />}
           {vistaActiva === 'actividades' && <ActividadesTab />}
+          {vistaActiva === 'economia' && <EconomiaTab />}
         </main>
       </div>
 

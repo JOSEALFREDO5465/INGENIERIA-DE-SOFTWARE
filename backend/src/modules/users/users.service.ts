@@ -12,24 +12,9 @@ export class UsersService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    // SEED: Automatically prompt Tito with 1234 if the database has zero users
-    const userCount = await this.userRepository.count();
-    if (userCount === 0) {
-      console.log('--- Database empty. Seeding administration root user "Tito" (password: 1234)...');
-      const hashedPassword = await bcrypt.hash('1234', 10);
-      const admin = this.userRepository.create({
-        nombre_completo: 'Tito',
-        nombre_usuario: 'Tito',
-        correo: 'tito@filadelfia.org',
-        contrasena: hashedPassword,
-        fecha_registro: new Date().toISOString(),
-        ultimo_acceso: '',
-        rol: 'admin',
-        aprobado: true,
-      });
-      await this.userRepository.save(admin);
-      console.log('--- Root administration user seeded successfully.');
-    }
+    // La base de datos se gestiona mediante el script SQL en /base de datos.
+    // No se realizan seeds ni sincronizaciones automáticas.
+    console.log('--- UsersService inicializado. Asegúrese de haber importado el script SQL.');
   }
 
   async findAll(): Promise<UserEntity[]> {

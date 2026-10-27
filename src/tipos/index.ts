@@ -8,7 +8,7 @@ export interface Usuario {
   contrasena: string;
   fecha_registro: string;
   ultimo_acceso: string;
-  rol: 'admin' | 'líder' | 'pastor';
+  rol: 'pastor' | 'secretaria' | 'tesorero';
   aprobado: boolean; // INDICA SI EL ADMINISTRADOR YA ACEPTÓ LA SOLICITUD DE CUENTA
 }
 
@@ -78,13 +78,14 @@ export interface Inventario {
   descripcion: string; // TAMAÑO-COLOR-MEDIDA-MARCA-SERIE-MODELO
   cantidad: number;
   unidad: 'Pz' | 'Jg' | 'Mts' | 'Otro'; // UNIDAD (Pz-Jg)
-  estado: 'Nuevo' | 'Bueno' | 'Mal'; // ESTADO (Nuev-Bueno-Mal)
+  estado: 'disponible' | 'en_uso' | 'dano' | 'mantenimiento'; // DISPONIBILIDAD FÍSICA
+  ubicacion: string; // UBICACIÓN FÍSICA DEL BIEN
   precio: number; // PRECIO
   moneda: 'Bs' | 'Sus'; // Bs-Sus
   procedencia: 'Comprado' | 'Donación'; // PROCEDENCIA (Comprado-Donacion)
   verificacion: 'Sí' | 'No'; // VERIFICACIÓN
-  id_ministerio: number; // CLAVE FORÁNEA (FK) al ministerio perteneciente
-  id_grupo?: number; // CLAVE FORÁNEA OPCIONAL (FK) al grupo de crecimiento perteneciente
+  id_ministerio: number | null; // CLAVE FORÁNEA (FK) al ministerio所属
+  id_grupo?: number | null; // CLAVE FORÁNEA OPCIONAL (FK) al grupo de crecimiento
   observaciones: string;
 }
 
@@ -92,12 +93,28 @@ export interface Inventario {
 export interface Actividad {
   id_actividad: number;
   fecha: string;
+  hora_inicio: string;
+  hora_fin?: string | null;
   actividad: string;
   proposito: string;
-  hora: string;
   responsable: string;
   lugar: string;
   estado: 'pendiente' | 'realizado' | 'cancelado';
   meta: string;
+  presupuesto: number;
+  costo_real: number;
   id_ministerio: number; // CLAVE FORÁNEA (FK)
+}
+
+// ESTA ES LA ESTRUCTURA DE LA TABLA: MOVIMIENTOS ECONÓMICOS
+export interface MovimientoEconomico {
+  id_movimiento: number;
+  tipo: 'ingreso' | 'egreso' | 'ofrenda';
+  monto: number;
+  descripcion: string;
+  fecha: string;
+  mes: number;
+  anio: number;
+  id_ministerio?: number | null;
+  id_usuario?: number | null;
 }
