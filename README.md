@@ -1,25 +1,28 @@
 # Sistema de Control y Gestión Eclesiástica - Iglesia Filadelfia
 
-Este proyecto es una aplicación web full-stack compuesta por un frontend en **React + TypeScript + Tailwind CSS** y un backend completo en **NestJS + TypeORM + MySQL**.
+Este proyecto es una aplicación web full-stack compuesta por un frontend en **React + TypeScript + Tailwind CSS** y un backend completo en **NestJS + TypeORM + PostgreSQL (Supabase)**.
 
-## Configuración de la base de datos
+## Configuración de la base de datos (Supabase)
 
-1. Crear la base de datos importando el script SQL:
-   - Archivo: `base de datos/IglesiaFiladelfia.sql`
-   - Importar en MySQL (phpMyAdmin, MySQL Workbench o CLI):
-     ```bash
-     mysql -u root -p < "base de datos/IglesiaFiladelfia.sql"
-     ```
-
-2. Configurar las variables de entorno en `.env`:
+1. Crea un proyecto en **https://supabase.com** (gratis).
+2. Ve a **Settings > Database > Connection string** y copia las credenciales.
+3. Configura las variables de entorno en `.env`:
    ```
-   DB_HOST=localhost
-   DB_PORT=3306
-   DB_USER=root
-   DB_PASSWORD=
-   DB_NAME=IglesiaFiladelfia
-   JWT_SECRET=filadelfia-secret-key
+   DB_HOST=db.xxxxxxxxxxxx.supabase.co
+   DB_PORT=5432
+   DB_USER=postgres
+   DB_PASSWORD=tu_password_de_supabase
+   DB_NAME=postgres
+   DB_SSL=true
+   JWT_SECRET=filadelfia-secret-key-change-in-production
    ```
+   
+   O usa la URL de conexión completa:
+   ```
+   DATABASE_URL=postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres
+   ```
+
+4. Las tablas deben existir en Supabase. Ejecuta el script SQL correspondiente en el SQL Editor de Supabase.
 
 ## Instalar dependencias
 npm install

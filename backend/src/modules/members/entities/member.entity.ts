@@ -32,11 +32,11 @@ export class MemberEntity {
   @Column({ name: 'direccion', type: 'varchar' })
   direccion: string;
 
-  @Column({ name: 'telefono', type: 'bigint' })
-  telefono: number;
+  @Column({ name: 'telefono', type: 'bigint', nullable: true, transformer: { to: (v: number | null) => v, from: (v: string | number | null) => (v === null ? null : (typeof v === 'string' ? parseInt(v, 10) : v)) } })
+  telefono: number | null;
 
-  @Column({ name: 'ci', type: 'varchar' })
-  ci: string;
+  @Column({ name: 'ci', type: 'varchar', nullable: true })
+  ci: string | null;
 
   @Column({ name: 'conversion', type: 'boolean', default: false })
   conversion: boolean;
@@ -63,10 +63,10 @@ export class MemberEntity {
   estado_miembro: 'Activo' | 'Pasivo';
 
   @Column({ name: 'otros_datos', type: 'text', nullable: true })
-  otros_datos: string;
+  otros_datos: string | null;
 
   @Column({ name: 'historial_liderazgo', type: 'text', nullable: true })
-  historial_liderazgo: string;
+  historial_liderazgo: string | null;
 
   @Column({ name: 'asiste_grupo', type: 'boolean', default: false })
   asiste_grupo: boolean;
@@ -77,9 +77,9 @@ export class MemberEntity {
   @Column({ name: 'grupo_categoria', type: 'varchar', default: 'Ninguno' })
   grupo_categoria: 'Ninguno' | 'Jóvenes' | 'Mayores';
 
-  @Column({ name: 'cursos_discipulado', type: 'simple-json', nullable: true })
-  cursos_discipulado: string[];
+  @Column({ name: 'cursos_discipulado', type: 'jsonb', nullable: true })
+  cursos_discipulado: string[] | null;
 
-  @Column({ name: 'ministerios_activos', type: 'simple-json', nullable: true })
-  ministerios_activos: string[];
+  @Column({ name: 'ministerios_activos', type: 'jsonb', nullable: true })
+  ministerios_activos: string[] | null;
 }

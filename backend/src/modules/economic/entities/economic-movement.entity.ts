@@ -8,13 +8,13 @@ export class EconomicMovementEntity {
   @Column({ name: 'tipo', type: 'varchar' })
   tipo: 'ingreso' | 'egreso' | 'ofrenda';
 
-  @Column({ name: 'monto', type: 'float' })
+  @Column({ name: 'monto', type: 'float', transformer: { to: (v: number) => v, from: (v: string | number) => (typeof v === 'string' ? parseFloat(v) : v) } })
   monto: number;
 
   @Column({ name: 'descripcion', type: 'text' })
   descripcion: string;
 
-  @Column({ name: 'fecha', type: 'varchar' })
+  @Column({ name: 'fecha', type: 'varchar', transformer: { to: (v: string) => v, from: (v: any) => (v instanceof Date ? v.toISOString().split('T')[0] : String(v).split('T')[0]) } })
   fecha: string;
 
   @Column({ name: 'mes', type: 'int' })

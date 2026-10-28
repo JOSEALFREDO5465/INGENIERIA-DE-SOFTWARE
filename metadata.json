@@ -1,8 +1,0 @@
-{
-  "name": "modificación total PROYECTO TAW 2",
-  "description": "Sistema de gestión Filadelfia.",
-  "requestFramePermissions": [],
-  "majorCapabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ]
-}

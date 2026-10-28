@@ -110,7 +110,7 @@ export const Login: React.FC = () => {
       </div>
  
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        <div className="bg-white py-8 px-6 border-2 border-[#bae6fd] rounded-2xl sm:px-10">
+        <div className="bg-white py-8 px-6 rounded-2xl sm:px-10" style={{ border: '1px solid rgba(14,31,26,0.15)' }}>
           
           {mensajeError && (
             <div className="mb-4 bg-red-50 border-2 border-red-250 rounded-xl p-3 flex items-start space-x-2.5">

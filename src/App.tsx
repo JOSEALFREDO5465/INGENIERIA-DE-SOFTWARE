@@ -102,7 +102,8 @@ const ContenedorEstructuralSecundario: React.FC = () => {
                   esActivo 
                     ? 'bg-[#f1f4f9] text-[#1565c0] border-l-4 border-[#1565c0] font-bold !rounded-l-none' 
                     : 'text-slate-600 hover:bg-[#f8f9fa] hover:text-[#1565c0]'
-                }`}>
+                }`}
+                >
                 <div className="flex items-center space-x-2.5">
                   <IconoComponente className="w-4 h-4" />
                   <span>{item.nombre}</span>
@@ -198,7 +199,8 @@ const ContenedorEstructuralSecundario: React.FC = () => {
                           esActivo 
                             ? 'bg-[#f1f4f9] text-[#1565c0] border-l-4 border-[#1565c0] font-bold !rounded-l-none' 
                             : 'text-slate-600 hover:bg-[#f8f9fa]'
-                        }`}>
+                        }`}
+                        >
                         <IconoComponente className="w-4 h-4" />
                         <span>{item.nombre}</span>
                       </button>
@@ -232,7 +234,7 @@ const ContenedorEstructuralSecundario: React.FC = () => {
         )}
 
         {/* CONTENIDO INTERNO DE PÁGINAS */}
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto">
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto bg-[#f4f7fa]">
           {(vistaActiva === 'dashboard' || location.pathname === '/') && <Dashboard />}
           {vistaActiva === 'miembros' && <MiembrosTab />}
           {vistaActiva === 'usuarios' && <UsuariosTab />}

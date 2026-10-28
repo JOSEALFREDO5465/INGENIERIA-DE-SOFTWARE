@@ -1,38 +1,22 @@
 version: '3.8'
 
 services:
-  db:
-    image: mysql:8.0
-    container_name: filadelfia_mysql
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: password123
-      MYSQL_DATABASE: filadelfia_db
-      MYSQL_USER: tito
-      MYSQL_PASSWORD: password123
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: filadelfia_fullstack
+    container_name: filadelfia_app
     restart: always
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
       - NODE_ENV=production
-      - DB_HOST=db
-      - DB_PORT=3306
-      - DB_USER=tito
-      - DB_PASSWORD=password123
-      - DB_NAME=filadelfia_db
-      - JWT_SECRET=filadelfia-secret-key-change-in-production
-    depends_on:
-      - db
 
-volumes:
-  mysql_data:
+# Nota: La base de datos se gestiona en Supabase (cloud).
+# No se necesita un contenedor de base de datos local.
+# Configura las credenciales de Supabase en el archivo .env
+
+# volumes:
+#   mysql_data: (eliminado - ya no se usa MySQL local)

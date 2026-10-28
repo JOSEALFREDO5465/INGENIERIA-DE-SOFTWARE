@@ -231,8 +231,8 @@ export const ActividadesTab: React.FC = () => {
     act.proposito,
     act.responsable,
     act.lugar,
-    act.presupuesto.toLocaleString('es-BO', { style: 'currency', currency: 'BOB' }),
-    act.costo_real.toLocaleString('es-BO', { style: 'currency', currency: 'BOB' }),
+    Number(act.presupuesto).toLocaleString('es-BO', { style: 'currency', currency: 'BOB' }),
+    Number(act.costo_real).toLocaleString('es-BO', { style: 'currency', currency: 'BOB' }),
     act.estado?.toUpperCase()
   ]);
 
@@ -382,16 +382,16 @@ export const ActividadesTab: React.FC = () => {
                 </div>
                 <div>
                   <span className="block text-[10px] uppercase font-mono text-slate-400">Presupuesto proyectado</span>
-                  <p className="font-bold text-slate-800">{actVerDetalle.presupuesto.toLocaleString('es-BO', { style: 'currency', currency: 'BOB' })}</p>
+                  <p className="font-bold text-slate-800">{Number(actVerDetalle.presupuesto).toLocaleString('es-BO', { style: 'currency', currency: 'BOB' })}</p>
                 </div>
                 <div>
                   <span className="block text-[10px] uppercase font-mono text-slate-400">Costo real ejecutado</span>
-                  <p className="font-bold text-slate-800">{actVerDetalle.costo_real.toLocaleString('es-BO', { style: 'currency', currency: 'BOB' })}</p>
+                  <p className="font-bold text-slate-800">{Number(actVerDetalle.costo_real).toLocaleString('es-BO', { style: 'currency', currency: 'BOB' })}</p>
                 </div>
                 <div>
                   <span className="block text-[10px] uppercase font-mono text-slate-400">Variación</span>
                   <p className={`font-bold ${actVerDetalle.costo_real <= actVerDetalle.presupuesto ? 'text-emerald-700' : 'text-rose-700'}`}>
-                    {(actVerDetalle.presupuesto - actVerDetalle.costo_real).toLocaleString('es-BO', { style: 'currency', currency: 'BOB' })}
+                    {(Number(actVerDetalle.presupuesto) - Number(actVerDetalle.costo_real)).toLocaleString('es-BO', { style: 'currency', currency: 'BOB' })}
                   </p>
                 </div>
                 <div>

@@ -68,21 +68,6 @@ export const obtenerEstiloBadgeMinisterio = (min: string) => {
 export const MiembrosTab: React.FC = () => {
   const { miembros, crearMiembro, actualizarMiembro, eliminarMiembro, grupos, ministerios } = useApp();
 
-  // Helper para clasificar grupos de crecimiento entre Jóvenes y Mayores de forma dinámica
-  const esGrupoDeJovenes = (nombre: string) => {
-    const norm = nombre.toLowerCase();
-    return (
-      norm.includes('joven') ||
-      norm.includes('juvenil') ||
-      norm.includes('bethel') ||
-      norm.includes('emanuel') ||
-      norm.includes('adolescente') ||
-      norm.includes('estudiante') ||
-      norm.includes('infantil') ||
-      norm.includes('niño')
-    );
-  };
-
   // --- ESTADOS PARA NAVEGACIÓN DE FORMULARIO ---
   const [modalAbierto, setModalAbierto] = useState<boolean>(false);
   const [modoEdicion, setModoEdicion] = useState<boolean>(false);
@@ -906,8 +891,8 @@ export const MiembrosTab: React.FC = () => {
                           setIdGrupo(null);
                         } else {
                           const gruposFiltradosPorCat = nuevaCat === 'Jóvenes'
-                            ? grupos.filter(g => esGrupoDeJovenes(g.nombre_grupo))
-                            : grupos.filter(g => !esGrupoDeJovenes(g.nombre_grupo));
+                            ? grupos.filter(g => g.categoria === 'Jóvenes')
+                            : grupos.filter(g => g.categoria === 'Mayores');
                           if (gruposFiltradosPorCat.length > 0) {
                             setIdGrupo(gruposFiltradosPorCat[0].id_grupo);
                           } else {
@@ -937,8 +922,8 @@ export const MiembrosTab: React.FC = () => {
                         >
                           <option value="">-- Seleccionar grupo --</option>
                           {(grupoCategoria === 'Jóvenes'
-                            ? grupos.filter(g => esGrupoDeJovenes(g.nombre_grupo))
-                            : grupos.filter(g => !esGrupoDeJovenes(g.nombre_grupo))
+                            ? grupos.filter(g => g.categoria === 'Jóvenes')
+                            : grupos.filter(g => g.categoria === 'Mayores')
                           ).map(g => (
                             <option key={g.id_grupo} value={g.id_grupo}>{g.nombre_grupo}</option>
                           ))}

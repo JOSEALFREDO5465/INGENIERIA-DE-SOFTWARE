@@ -20,7 +20,7 @@ export class InventoryEntity {
   @Column({ name: 'ubicacion', type: 'varchar', default: '' })
   ubicacion: string;
 
-  @Column({ name: 'precio', type: 'float', default: 0 })
+  @Column({ name: 'precio', type: 'float', default: 0, transformer: { to: (v: number) => v, from: (v: string | number) => (typeof v === 'string' ? parseFloat(v) : v) } })
   precio: number;
 
   @Column({ name: 'moneda', type: 'varchar', default: 'Bs' })

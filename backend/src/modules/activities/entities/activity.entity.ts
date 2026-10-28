@@ -32,10 +32,10 @@ export class ActivityEntity {
   @Column({ name: 'meta', type: 'text', nullable: true })
   meta: string;
 
-  @Column({ name: 'presupuesto', type: 'float', default: 0 })
+  @Column({ name: 'presupuesto', type: 'float', default: 0, transformer: { to: (v: number) => v, from: (v: string | number) => (typeof v === 'string' ? parseFloat(v) : v) } })
   presupuesto: number;
 
-  @Column({ name: 'costo_real', type: 'float', default: 0 })
+  @Column({ name: 'costo_real', type: 'float', default: 0, transformer: { to: (v: number) => v, from: (v: string | number) => (typeof v === 'string' ? parseFloat(v) : v) } })
   costo_real: number;
 
   @Column({ name: 'id_ministerio', type: 'int' })
