@@ -79,10 +79,7 @@ export const Dashboard: React.FC = () => {
         <div className="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
           <Church className="w-80 h-80 text-sky-200" style={{ color: '#bae6fd' }} />
         </div>
-        <div className="relative z-10 max-w-3xl">
-          <span className="bg-slate-100 border border-slate-205 font-mono text-[10.5px] px-3 py-1 rounded-full uppercase tracking-wider font-semibold inline-block" style={{ color: '#263238' }}>
-            Dashboard Principal · Administración General
-          </span>
+        <div className="relative z-10 max-w-3xl">      
           <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight mt-3" style={{ color: '#263238' }}>
             Iglesia Filadelfia
           </h1>
@@ -100,15 +97,12 @@ export const Dashboard: React.FC = () => {
               <div className="bg-slate-100 p-2 rounded-xl text-black">
                 <HeartHandshake className="w-5 h-5" />
               </div>
-              <h3 className="text-base font-bold text-black font-sans">Nuestra Misión</h3>
+              <h3 className="text-base font-bold text-black font-sans">Misión</h3>
             </div>
             <p className="text-[#111111] text-xs leading-relaxed italic">
-              "Proclamar el evangelio de Jesucristo a toda persona, discipular a los creyentes para lograr su madurez espiritual en la fe, y servir a nuestra comunidad con amor."
+              FILADELFIA es una familia comprometida a celebrar la presencia de Dios, comunicar su palabra, promueve comunión afectiva, enseñando la madurez para un servicio eficiente a su familia, iglesia y comunidad.
             </p>
-          </div>
-          <div className="border-t border-slate-100 pt-2 mt-3 text-[11px] text-slate-800 font-mono">
-            IGLESIA FILADELFIA · MARCOS 16:15
-          </div>
+          </div>        
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between">
@@ -117,15 +111,12 @@ export const Dashboard: React.FC = () => {
               <div className="bg-slate-100 p-2 rounded-xl text-black">
                 <Award className="w-5 h-5" />
               </div>
-              <h3 className="text-base font-bold text-black font-sans">Nuestra Visión</h3>
+              <h3 className="text-base font-bold text-black font-sans">Visión</h3>
             </div>
             <p className="text-[#111111] text-xs leading-relaxed italic">
-              "Ser una iglesia unida y multiplicadora comprometida con la transformación integral mediante la expansión orgánica de células y ministerios."
+              En los próximos cinco años, la familia FILADELFIA alcanzará a consolidar 80 grupos de crecimiento con miembros comprometidos sirviendo al pueblo de Dios y la comunidad de forma íntegra ayudando en sus necesidades: social, espiritual, material, enseñándoles principios para desarrollar habilidades que les permita salir de la pobreza con los recursos provistos por Dios.
             </p>
-          </div>
-          <div className="border-t border-slate-100 pt-2 mt-3 text-[11px] text-slate-800 font-mono">
-            IGLESIA FILADELFIA · HECHOS 1:8
-          </div>
+          </div>        
         </div>
       </div>
 
