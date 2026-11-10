@@ -1,6 +1,8 @@
-// ESTE COMPONENTE CONTIENE LA GESTIÓN DE USUARIOS DEL SISTEMA Y LA DE EVALUACIÓN DE SOLICITUDES
+﻿// ESTE COMPONENTE CONTIENE LA GESTIÓN DE USUARIOS DEL SISTEMA Y LA DE EVALUACIÓN DE SOLICITUDES
 
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
+import { EntradaAnimada } from '../componentes/EntradaAnimada';
 import { useApp } from '../contextos/AppContexto';
 import { Usuario } from '../tipos';
 import { Search, Eye, Edit, Trash2, X, Check, ShieldAlert, BadgeHelp, XCircle, ShieldCheck } from 'lucide-react';
@@ -152,21 +154,27 @@ export const UsuariosTab: React.FC = () => {
   const esAdministradorPrincipal = usuarioActual?.rol === 'pastor';
 
   return (
-    <div className="space-y-8 font-sans">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      className="space-y-8 font-sans"
+    >
       
       {/* REQUERIMIENTO ESPECIAL: BANDEJA DE ENTRADA DE SOLICITUDES PARA EL ADMINISTRADOR PRINCIPAL */}
+      <EntradaAnimada>
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
         <div className="flex items-center justify-between pb-4 border-b border-slate-100">
           <div className="flex items-center space-x-2.5">
-            <div className="bg-amber-100 text-amber-850 p-2 rounded-xl text-amber-700">
-              <ShieldAlert className="w-5 h-5" />
+            <div className="bg-[#FFFBEB] p-2 rounded-xl text-[#B45309]">
+              <ShieldAlert className="w-5 h-5 text-[#F59E0B]" />
             </div>
             <div>
               <h2 className="text-base font-extrabold text-slate-900">Bandeja de Cuentas por Aprobar</h2>
               <p className="text-xs text-slate-500">Solicitudes de usuario bajo evaluación del Administrador Principal.</p>
             </div>
           </div>
-          <span className="bg-amber-100 text-amber-800 font-mono text-xs px-2.5 py-1 rounded-lg font-bold">
+          <span className="bg-[#FEF3C7] text-[#92400E] font-mono text-xs px-2.5 py-1 rounded-lg font-bold">
             {solicitudesPendientes.length} Solicitudes
           </span>
         </div>
@@ -174,13 +182,16 @@ export const UsuariosTab: React.FC = () => {
         {esAdministradorPrincipal ? (
           <div className="mt-4 space-y-3">
             {solicitudesPendientes.length > 0 ? (
-              solicitudesPendientes.map((sol) => (
-                <div 
+              solicitudesPendientes.map((sol, index) => (
+                <motion.div 
                   key={sol.id_usuario}
-                  className="bg-amber-50/40 p-4 rounded-xl border border-amber-200 flex flex-col md:flex-row md:items-center justify-between text-xs gap-4">
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 + index * 0.06, duration: 0.4, ease: 'easeOut' }}
+                  className="bg-[#FFFBEB]/60 p-4 rounded-xl border border-[#FDE68A] flex flex-col md:flex-row md:items-center justify-between text-xs gap-4">
                   <div className="space-y-1">
                     <div className="flex items-center space-x-2">
-                      <span className="bg-amber-250 text-amber-900 bg-amber-100 px-2 py-0.5 rounded font-bold uppercase text-[9px] tracking-wider">
+                      <span className="bg-[#FEF3C7] text-[#92400E] px-2 py-0.5 rounded font-bold uppercase text-[9px] tracking-wider">
                         Rol pedido: {sol.rol}
                       </span>
                       <h4 className="font-bold text-slate-800 text-sm">{sol.nombre_completo}</h4>
@@ -194,7 +205,7 @@ export const UsuariosTab: React.FC = () => {
                         aprobarUsuario(sol.id_usuario);
                         alert(`¡La cuenta de ${sol.nombre_completo} ha sido aprobada correctamente! Ahora puede entrar al sistema.`);
                       }}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-1.5 rounded-lg flex items-center space-x-1 cursor-pointer transition text-xs">
+                      className="bg-[#4040E0] hover:bg-[#2F34C4] text-white font-bold px-3.5 py-1.5 rounded-lg flex items-center space-x-1 cursor-pointer transition text-xs">
                       <Check className="w-3.5 h-3.5" />
                       <span>Autorizar Cuenta</span>
                     </button>
@@ -209,7 +220,7 @@ export const UsuariosTab: React.FC = () => {
                       <span>Descartar</span>
                     </button>
                   </div>
-                </div>
+                </motion.div>
               ))
             ) : (
               <div className="py-8 text-center text-slate-400 italic text-xs">
@@ -221,14 +232,16 @@ export const UsuariosTab: React.FC = () => {
           <div className="mt-4 bg-slate-50 p-4 rounded-2xl border border-slate-200/60 flex items-center space-x-3 text-xs text-slate-500">
             <BadgeHelp className="w-6 h-6 text-indigo-505 text-indigo-650" />
             <p>
-              ⚠️ **Acceso Restringido:** El módulo de validación y aprobación de colaboradores está supeditado exclusivamente a la cuenta del <strong>Administrador Principal (rol: admin)</strong>. Inicie sesión como 'admin' para evaluar estas solicitudes.
+              El módulo de validación y aprobación de colaboradores está supeditado exclusivamente a la cuenta del <strong>Administrador Principal (rol: admin)</strong>. Inicie sesión como 'admin' para evaluar estas solicitudes.
             </p>
           </div>
         )}
       </div>
+      </EntradaAnimada>
 
       {/* CONTROL DEL CRUD GENERAL USUARIOS ACTIVOS */}
       <div className="space-y-4">
+        <EntradaAnimada delay={0.1}>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
           <div>
             <h2 className="text-base font-extrabold text-slate-900">Lista de Usuarios Autorizados</h2>
@@ -236,8 +249,10 @@ export const UsuariosTab: React.FC = () => {
           </div>
 
         </div>
+        </EntradaAnimada>
 
         {/* BUSCADOR EXCLUSIVO */}
+        <EntradaAnimada delay={0.16}>
         <div className="relative rounded-2xl shadow-sm">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <Search className="h-5 w-5 text-slate-400" />
@@ -249,8 +264,10 @@ export const UsuariosTab: React.FC = () => {
             placeholder="Búsqueda rápida"
             className="block w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs"/>
         </div>
+        </EntradaAnimada>
 
         {/* SECCIÓN LISTADO USUARIOS */}
+        <EntradaAnimada delay={0.24}>
         <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-100">
@@ -266,18 +283,23 @@ export const UsuariosTab: React.FC = () => {
               </thead>
               <tbody className="bg-white divide-y divide-slate-100 text-xs">
                 {usuariosAprobados.length > 0 ? (
-                  usuariosAprobados.map((u) => (
-                    <tr key={u.id_usuario} className="hover:bg-slate-50/50 transition">
+                  usuariosAprobados.map((u, index) => (
+                    <motion.tr
+                      key={u.id_usuario}
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 + index * 0.04, duration: 0.35, ease: 'easeOut' }}
+                      className="hover:bg-slate-50/50 transition">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900">{u.id_usuario}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-bold text-slate-800">{u.nombre_completo}</div>
-                        <div className="text-[11px] text-indigo-600 font-mono">@{u.nombre_usuario}</div>
+                        <div className="text-[11px] text-[#4040E0] font-mono">@{u.nombre_usuario}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-slate-700 font-medium">{u.correo}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <span className={`inline-flex px-2.5 py-0.75 text-[10px] font-bold rounded-full uppercase tracking-wider ${
-                          u.rol === 'pastor' ? 'bg-red-50 text-red-750 border border-red-200' :
-                          u.rol === 'secretaria' ? 'bg-purple-50 text-purple-750 border border-purple-200' : 'bg-indigo-55 bg-indigo-50 text-indigo-750 border border-indigo-200'}`}>
+                          u.rol === 'pastor' ? 'bg-[#FEE2E2] text-[#B91C1C] border border-[#FECACA]' :
+                          u.rol === 'secretaria' ? 'bg-[#EDE9FE] text-[#6D28D9] border border-[#DDD6FE]' : 'bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]'}`}>
                           {u.rol}
                         </span>
                       </td>
@@ -296,7 +318,7 @@ export const UsuariosTab: React.FC = () => {
                         {usuarioActual && usuarioActual.id_usuario === u.id_usuario && (
                           <button
                             onClick={() => abrirFormEditar(u)}
-                            className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                            className="p-1.5 text-[#FD6E6E] hover:bg-[#FDE7E7] rounded-lg transition cursor-pointer"
                             title="Editar Mi Cuenta">
                             <Edit className="w-4 h-4" />
                           </button>
@@ -307,14 +329,14 @@ export const UsuariosTab: React.FC = () => {
                           <>
                             <button
                               onClick={() => manejarBaja(u.id_usuario, u.nombre_completo)}
-                              className="p-1.5 text-amber-500 hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                              className="p-1.5 text-[#FD6E6E] hover:bg-[#FDE7E7] rounded-lg transition cursor-pointer"
                               title="Dar de Baja Cuenta"
                             >
                               <XCircle className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => manejarEliminar(u.id_usuario, u.nombre_completo)}
-                              className="p-1.5 text-red-650 hover:bg-red-50 hover:text-red-850 rounded-lg transition text-red-600 cursor-pointer"
+                              className="p-1.5 text-red-650 hover:bg-[#FDE7E7] hover:text-red-850 rounded-lg transition text-[#FD6E6E] cursor-pointer"
                               title="Eliminar Cuenta"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -322,7 +344,7 @@ export const UsuariosTab: React.FC = () => {
                           </>
                         )}
                       </td>
-                    </tr>
+                    </motion.tr>
                   ))
                 ) : (
                   <tr>
@@ -335,12 +357,13 @@ export const UsuariosTab: React.FC = () => {
             </table>
           </div>
         </div>
+        </EntradaAnimada>
       </div>
 
       {/* MODAL: DETALLE FICHA INTEGRAL DE USUARIOS */}
       {userVerDetalle && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-md w-full">
+        <div className="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm overscroll-contain flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-150 flex justify-between items-center rounded-t-3xl">
               <div>
                 <h3 className="text-base font-black text-slate-850">Datos de esta Cuenta</h3>
@@ -387,8 +410,8 @@ export const UsuariosTab: React.FC = () => {
 
       {/* FORMULARIO EDITAR LA CUENNTA */}
       {modalAbierto && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-sm w-full">
+        <div className="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm overscroll-contain flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-150 flex justify-between items-center bg-white rounded-t-3xl">
               <h3 className="text-sm font-black text-slate-850">
                 {'Actualizar Datos de Cuenta'}
@@ -397,7 +420,7 @@ export const UsuariosTab: React.FC = () => {
             <form onSubmit={manejarGuardado} className="p-6 space-y-4 text-xs text-slate-800 font-sans">
               
               {errValidacion && (
-                <div className="bg-red-50 text-red-800 border p-2.5 rounded-lg font-mono">
+                <div className="bg-[#FDE7E7] text-[#E85B5B] border p-2.5 rounded-lg font-mono">
                    {errValidacion}
                 </div>
               )}
@@ -428,7 +451,7 @@ export const UsuariosTab: React.FC = () => {
                 </div>
               ) : (
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center space-x-2 text-slate-500">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                  <ShieldCheck className="w-4 h-4 text-[#3F5F5A] flex-shrink-0" />
                   <span>Contraseña protegida (Solo el propio dueño puede modificarla)</span>
                 </div>
               )}
@@ -451,6 +474,6 @@ export const UsuariosTab: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };

@@ -24,13 +24,13 @@ export interface Miembro {
   estado_civil: 'Soltero' | 'Casado' | 'Divorciado' | 'Viudo';
   profesion_oficio: string;
   direccion: string;
-  telefono: number;
+  telefono: number | null;
   ci: string;
   conversion: boolean;
-  fecha_conversion: string;
+  fecha_conversion: string | null;
   lugar_conversion: string;
   bautizado: boolean;
-  fecha_bautizo: string;
+  fecha_bautizo: string | null;
   lugar_bautizo: string;
   id_grupo: number | null; // CLAVE FORÁNEA (FK) - puede ser nulo si elige Ninguno
   estado_miembro: 'Activo' | 'Pasivo';
@@ -96,7 +96,7 @@ export interface Actividad {
   hora_inicio: string;
   hora_fin?: string | null;
   actividad: string;
-  proposito: string;
+  proposito: string[];
   responsable: string;
   lugar: string;
   estado: 'pendiente' | 'realizado' | 'cancelado';

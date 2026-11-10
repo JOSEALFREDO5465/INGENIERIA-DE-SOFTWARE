@@ -272,8 +272,12 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
       if (response.ok) {
         const created = await response.json();
         setMiembros(prev => [...prev, created]);
+      } else {
+        const msg = await response.text();
+        alert('No se pudo registrar el miembro. ' + (msg || `Error ${response.status} del servidor.`));
       }
     } catch (e) {
+      alert('No se pudo conectar con el servidor para registrar el miembro.');
       console.error(e);
     }
   };
@@ -288,8 +292,12 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
       if (response.ok) {
         const updated = await response.json();
         setMiembros(prev => prev.map(m => m.id_miembro === id ? updated : m));
+      } else {
+        const msg = await response.text();
+        alert('No se pudo actualizar el miembro. ' + (msg || `Error ${response.status} del servidor.`));
       }
     } catch (e) {
+      alert('No se pudo conectar con el servidor para actualizar el miembro.');
       console.error(e);
     }
   };

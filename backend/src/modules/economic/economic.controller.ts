@@ -17,7 +17,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 
 @Controller('economic')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('pastor', 'secretaria', 'tesorero')
+@Roles('pastor', 'tesorero')
 export class EconomicController {
   constructor(
     @Inject(EconomicService)

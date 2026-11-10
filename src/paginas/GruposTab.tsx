@@ -1,7 +1,9 @@
-// ESTE COMPONENTE ADMINISTRA EL CRUD DE GRUPOS DE CRECIMIENTO DE LA IGLESIA FILADELFIA
+﻿// ESTE COMPONENTE ADMINISTRA EL CRUD DE GRUPOS DE CRECIMIENTO DE LA IGLESIA FILADELFIA
 // CONTIENE EL FORMULARIO INTEGRAL BASADO EN LA TABLA DEL PDF, INCLUYENDO LOS INTEGRANTES DE LA JUNTA CELULAR Y EL PASTOR ENCARGADO
 
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
+import { EntradaAnimada } from '../componentes/EntradaAnimada';
 import { useApp } from '../contextos/AppContexto';
 import { GrupoCrecimiento } from '../tipos';
 import { Plus, Search, FileText, Eye, Edit, Trash2, X, AlertTriangle, Users, Package } from 'lucide-react';
@@ -141,9 +143,15 @@ export const GruposTab: React.FC = () => {
   ]);
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      className="space-y-6"
+    >
       
       {/* SECCIÓN ENCABEZADO CON BOTONES OPERATIVOS */}
+      <EntradaAnimada>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm font-sans">
         <div>
           <h1 className="text-xl font-extrabold text-slate-900">Grupos de Crecimiento</h1>
@@ -157,17 +165,21 @@ export const GruposTab: React.FC = () => {
             <FileText className="w-4 h-4 text-slate-600" />
             <span>Generar Reporte PDF</span>
           </button>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={abrirFormNuevo}
             className="flex-1 sm:flex-initial flex items-center justify-center space-x-1 bg-indigo-650 bg-indigo-600 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Crear Grupo</span>
-          </button>
+          </motion.button>
         </div>
       </div>
+      </EntradaAnimada>
 
       {/* CONTROL BUSCADOR CÉLULAR */}
+      <EntradaAnimada delay={0.1}>
       <div className="relative rounded-2xl shadow-sm">
         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
           <Search className="h-5 w-5 text-slate-400" />
@@ -180,8 +192,10 @@ export const GruposTab: React.FC = () => {
           className="block w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs"
         />
       </div>
+      </EntradaAnimada>
 
       {/* TABS DE DIVISIÓN DE GRUPOS EN 2 */}
+      <EntradaAnimada delay={0.16}>
       <div className="flex bg-slate-100 p-1.5 rounded-2xl max-w-md mx-auto">
         <button
           type="button"
@@ -203,19 +217,21 @@ export const GruposTab: React.FC = () => {
           onClick={() => setCategoriaActiva('Mayores')}
           className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 text-xs font-black uppercase rounded-xl transition cursor-pointer ${
             categoriaActiva === 'Mayores'
-              ? 'bg-white text-emerald-800 shadow-sm border border-slate-200/40'
+              ? 'bg-white text-[#002060] shadow-sm border border-slate-200/40'
               : 'text-slate-500 hover:text-slate-800'
           }`}
         >
-          <Users className="w-4 h-4 text-emerald-600" />
+          <Users className="w-4 h-4 text-[#92400E]" />
           <span>Grupos de Mayores</span>
-          <span className="bg-emerald-100 text-emerald-800 text-[9px] px-2 py-0.5 rounded-full font-black font-mono">
+          <span className="bg-[#FEF3C7] text-[#92400E] text-[9px] px-2 py-0.5 rounded-full font-black font-mono">
             {grupos.filter(g => g.categoria === 'Mayores').length}
           </span>
         </button>
       </div>
+      </EntradaAnimada>
 
       {/* SECCIÓN TABLA GRUPOS DE CRECIMIENTO */}
+      <EntradaAnimada delay={0.24}>
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-4">
         {gruposFiltrados.length > 0 ? (
           <div className="overflow-x-auto">
@@ -230,15 +246,20 @@ export const GruposTab: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-slate-100 text-xs text-slate-800">
-                {gruposFiltrados.map((g) => {
+                {gruposFiltrados.map((g, index) => {
                   const totMiembros = miembros.filter(m => m.id_grupo === g.id_grupo).length;
                   const totBienes = inventario.filter(i => i.id_grupo === g.id_grupo).length;
                   return (
-                    <tr key={g.id_grupo} className="hover:bg-slate-50/50 transition">
+                    <motion.tr
+                      key={g.id_grupo}
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 + index * 0.04, duration: 0.35, ease: 'easeOut' }}
+                      className="hover:bg-slate-50/50 transition">
                       {/* GRUPO */}
                       <td className="px-5 py-4 border-r border-slate-100 whitespace-nowrap">
                         <div className="flex flex-col">
-                          <span className="font-extrabold text-[#1565c0] text-sm uppercase tracking-wide">
+                          <span className="font-extrabold text-[#002060] text-sm uppercase tracking-wide">
                             {g.nombre_grupo}
                           </span>
                           <span className="text-[10px] text-slate-400 font-mono uppercase mt-0.5">
@@ -278,20 +299,20 @@ export const GruposTab: React.FC = () => {
                         </button>
                         <button
                           onClick={() => abrirFormEditar(g)}
-                          className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition cursor-pointer inline-block"
+                          className="p-1.5 text-[#FD6E6E] hover:bg-[#FDE7E7] rounded-lg transition cursor-pointer inline-block"
                           title="Editar Propiedades"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => manejarEliminar(g.id_grupo, g.nombre_grupo)}
-                          className="p-1.5 text-red-650 hover:bg-red-50 hover:text-red-850 rounded-lg transition cursor-pointer inline-block text-red-600"
+                          className="p-1.5 text-red-650 hover:bg-[#FDE7E7] hover:text-red-850 rounded-lg transition cursor-pointer inline-block text-[#FD6E6E]"
                           title="Eliminar"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </td>
-                    </tr>
+                    </motion.tr>
                   );
                 })}
               </tbody>
@@ -303,10 +324,11 @@ export const GruposTab: React.FC = () => {
           </div>
         )}
       </div>
+      </EntradaAnimada>
 
       {/* MODAL: DETALLES DE UN GRUPO DE CRECIMIENTO */}
       {grupoVerDetalle && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm overscroll-contain flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-150 flex justify-between items-center bg-white rounded-t-3xl">
               <div>
@@ -363,7 +385,7 @@ export const GruposTab: React.FC = () => {
                 >
                   <Package className="w-4 h-4 mb-0.5" />
                   {inventario.filter(item => item.id_grupo === grupoVerDetalle.id_grupo).length > 0 && (
-                    <span className="absolute top-1 right-1 bg-emerald-600 text-white text-[8px] font-black h-4 min-w-4 px-1 rounded-full flex items-center justify-center shadow-sm">
+                    <span className="absolute top-1 right-1 bg-[#002060] text-white text-[8px] font-black h-4 min-w-4 px-1 rounded-full flex items-center justify-center shadow-sm">
                       {inventario.filter(item => item.id_grupo === grupoVerDetalle.id_grupo).length}
                     </span>
                   )}
@@ -448,7 +470,7 @@ export const GruposTab: React.FC = () => {
                           <div className="text-right">
                             <span className={`inline-block text-[9px] font-black uppercase font-mono px-2 py-0.5 rounded-md ${
                               m.estado_miembro === 'Activo'
-                                ? 'bg-emerald-100 text-emerald-800'
+                                ? 'bg-[#D1FAE5] text-[#047857]'
                                 : 'bg-slate-100 text-slate-600'
                             }`}>
                               {m.estado_miembro}
@@ -458,7 +480,7 @@ export const GruposTab: React.FC = () => {
                         </div>
                       ))
                     ) : (
-                      <div className="p-6 text-center text-slate-450 italic bg-amber-50/35 border rounded-xl">
+                      <div className="p-6 text-center text-slate-450 italic bg-[#FDE7E7]/35 border rounded-xl">
                         No hay miembros de la iglesia asociados a este grupo de crecimiento en el sistema.
                       </div>
                     )}
@@ -469,9 +491,9 @@ export const GruposTab: React.FC = () => {
               {/* CONTENIDO DE SECCIÓN: INVENTARIO */}
               {seccionActiva === 'inventario' && (
                 <div className="space-y-3 pt-1">
-                  <div className="flex justify-between items-center bg-emerald-50/50 p-2 rounded-xl border border-emerald-100">
-                    <span className="text-[10px] font-bold text-emerald-900 uppercase font-mono">Bienes / Equipos Asignados al Grupo</span>
-                    <span className="bg-emerald-600 text-white text-[9px] px-2 py-0.5 rounded-md font-bold">
+                  <div className="flex justify-between items-center bg-[#EDF2FF]/50 p-2 rounded-xl border border-[#C7D2FE]">
+                    <span className="text-[10px] font-bold text-[#002060] uppercase font-mono">Bienes / Equipos Asignados al Grupo</span>
+                    <span className="bg-[#002060] text-white text-[9px] px-2 py-0.5 rounded-md font-bold">
                       Items: {inventario.filter(i => i.id_grupo === grupoVerDetalle.id_grupo).length}
                     </span>
                   </div>
@@ -486,10 +508,10 @@ export const GruposTab: React.FC = () => {
                               <span className="text-[10px] text-slate-450 font-mono mt-0.5">Código Único: #{i.codigo}</span>
                             </div>
                             <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
-                              i.estado === 'disponible' ? 'bg-emerald-100 text-emerald-700' :
-                              i.estado === 'en_uso' ? 'bg-blue-100 text-blue-700' :
-                              i.estado === 'dano' ? 'bg-rose-100 text-rose-700' :
-                              'bg-amber-100 text-amber-700'
+                              i.estado === 'disponible' ? 'bg-[#D1FAE5] text-[#047857]' :
+                              i.estado === 'en_uso' ? 'bg-[#E0E7FF] text-[#3730A3]' :
+                              i.estado === 'dano' ? 'bg-[#FEE2E2] text-[#B91C1C]' :
+                              'bg-[#FEE2E2] text-[#B91C1C]'
                             }`}>
                               Estado: {i.estado}
                             </span>
@@ -539,8 +561,8 @@ export const GruposTab: React.FC = () => {
 
       {/* MODAL: FORMULARIO CRUD CREAR/EDITAR */}
       {modalAbierto && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm overscroll-contain flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-150 flex justify-between items-center bg-white rounded-t-3xl">
               <h3 className="text-sm font-black text-slate-850">
                 {modoEdicion ? 'Actualizar Ficha de Célula' : 'Añadir Registro Grupo de Crecimiento'}
@@ -553,8 +575,9 @@ export const GruposTab: React.FC = () => {
             <form onSubmit={manejarGuardado} className="p-6 space-y-4 text-xs text-slate-800 font-sans">
               
               {errValidacion && (
-                <div className="bg-red-50 text-red-800 border p-2.5 rounded-lg font-mono">
-                  ⚠️ {errValidacion}
+                <div className="bg-[#FDE7E7] text-[#E85B5B] border p-2.5 rounded-lg font-mono flex items-center space-x-2">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                  <span>{errValidacion}</span>
                 </div>
               )}
 
@@ -619,6 +642,7 @@ export const GruposTab: React.FC = () => {
                       value={lider}
                       onChange={(e) => setLider(e.target.value)}
                       className="mt-1 block w-full px-2.5 py-1.8 bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none"
+                      placeholder="Ingrese el nombre del lider del grupo"
                     />
                   </div>
                   <div>
@@ -629,6 +653,7 @@ export const GruposTab: React.FC = () => {
                       value={secretario}
                       onChange={(e) => setSecretario(e.target.value)}
                       className="mt-1 block w-full px-2.5 py-1.8 bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none"
+                      placeholder="Ingrese el nombre del secretario"
                     />
                   </div>
                   <div>
@@ -639,6 +664,7 @@ export const GruposTab: React.FC = () => {
                       value={tesorero}
                       onChange={(e) => setTesorero(e.target.value)}
                       className="mt-1 block w-full px-2.5 py-1.8 bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none"
+                      placeholder="Ingrese el nombre del tesorero"
                     />
                   </div>
                   <div>
@@ -649,6 +675,7 @@ export const GruposTab: React.FC = () => {
                       value={vocal1}
                       onChange={(e) => setVocal1(e.target.value)}
                       className="mt-1 block w-full px-2.5 py-1.8 bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none"
+                      placeholder="Ingrese el nombre del vocal 1"
                     />
                   </div>
                   <div className="col-span-2">
@@ -689,12 +716,13 @@ export const GruposTab: React.FC = () => {
       {reportePdfAbierto && (
         <GeneradorPDF
           titulo="Libro de Actas de Grupos de Crecimiento de la Iglesia Filadelfia"
+          seccion="Grupos de Crecimiento"
           columnas={columnasPdf}
           datos={datosPdf}
           alCerrar={() => setReportePdfAbierto(false)}
         />
       )}
 
-    </div>
+    </motion.div>
   );
 };

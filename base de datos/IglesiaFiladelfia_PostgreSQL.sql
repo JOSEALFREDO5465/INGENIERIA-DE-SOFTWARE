@@ -133,7 +133,7 @@ CREATE TABLE IF NOT EXISTS actividades (
   hora_inicio VARCHAR(10) DEFAULT NULL,
   hora_fin VARCHAR(10) DEFAULT NULL,
   actividad VARCHAR(255) NOT NULL,
-  proposito VARCHAR(255) DEFAULT NULL,
+  proposito JSONB NOT NULL DEFAULT '[]'::jsonb,
   responsable VARCHAR(255) DEFAULT NULL,
   lugar VARCHAR(255) DEFAULT NULL,
   estado VARCHAR(20) DEFAULT 'pendiente' CHECK (estado IN ('pendiente', 'realizado', 'cancelado')),

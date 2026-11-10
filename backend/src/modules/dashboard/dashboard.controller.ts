@@ -6,7 +6,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 
 @Controller('dashboard')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('pastor', 'secretaria', 'tesorero')
+@Roles('pastor', 'secretaria')
 export class DashboardController {
   constructor(
     @Inject(DashboardService)

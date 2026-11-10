@@ -1,7 +1,9 @@
-// ESTE COMPONENTE ADMINISTRA EL CICLO DE VIDA CRUD PARA LA TABLA INVENTARIO
+﻿// ESTE COMPONENTE ADMINISTRA EL CICLO DE VIDA CRUD PARA LA TABLA INVENTARIO
 // PERMITE CONTROLAR LOS ACTIVOS INTEGRALES Y EQUIPOS ADQUIRIDOS O DONADOS EN BOLIVIANOS (BS)
 
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
+import { EntradaAnimada } from '../componentes/EntradaAnimada';
 import { useApp } from '../contextos/AppContexto';
 import { Inventario } from '../tipos';
 import { Plus, Search, FileText, Eye, Edit, Trash2, X, AlertTriangle } from 'lucide-react';
@@ -183,8 +185,12 @@ export const InventarioTab: React.FC = () => {
     }
   };
 
-  // REPORTE PDF COLUMNAS
+  // REPORTE PDF COLUMNAS (PDF completo de la aplicación)
   const columnasPdf = ['Código', 'Descripción del Artículo', 'Cant', 'Unidad', 'Estado Físico', 'Ubicación', 'Precio', 'Costo Total', 'Procedencia', 'Verificado', 'Ministerio', 'Grupo'];
+  // COLUMNAS AL FORMATO OFICIAL DE LA CABECERA DE INVENTARIO (Excel tal cual el modelo)
+  const columnasExcel = ['CODIGO', 'DESCRIPCION', 'CANT', 'UNIDAD', 'ESTADO', 'PRECIO', 'PROCEDENCIA', 'Verificación', 'Observaciones'];
+  const pistasExcel = ['', '(Tamaño-Color-Medida-Marca-Serie-Modelo)', '', 'Pz-Jg', 'Nuev-Bueno-Mal', 'Bs-Sus', 'Comprado-Donación', '', ''];
+  const anchosExcel = [14, 72, 7, 9, 13, 9, 17, 7, 24];
   const datosPdf = inventarioFiltrado.map(item => [
     item.codigo,
     item.descripcion,
@@ -199,11 +205,28 @@ export const InventarioTab: React.FC = () => {
     ministerios?.find(m => m.id_ministerio === item.id_ministerio)?.nombre_ministerio || 'General',
     item.id_grupo ? `Grupo ${item.id_grupo}` : '-'
   ]);
+  const datosExcel = inventarioFiltrado.map(item => [
+    item.codigo,
+    `Cod. ${String(item.codigo).padStart(2, '0')} - ${item.descripcion}`,
+    item.cantidad,
+    item.unidad || 'Pz',
+    item.estado,
+    `${Number(item.precio)} ${item.moneda}`,
+    item.procedencia,
+    item.verificacion,
+    item.observaciones || '',
+  ]);
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      className="space-y-6"
+    >
       
       {/* SECCIÓN ENCABEZADO CON OPERADORES */}
+      <EntradaAnimada>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm font-sans">
         <div>
           <h1 className="text-xl font-extrabold text-slate-900">Inventario de Bienes de la Iglesia</h1>
@@ -217,17 +240,21 @@ export const InventarioTab: React.FC = () => {
             <FileText className="w-4 h-4 text-slate-600" />
             <span>Generar Reporte PDF</span>
           </button>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={abrirFormNuevo}
             className="flex-1 sm:flex-initial flex items-center justify-center space-x-1 bg-indigo-650 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Añadir Activo</span>
-          </button>
+          </motion.button>
         </div>
       </div>
+      </EntradaAnimada>
 
       {/* CONTROL BUSCADOR */}
+      <EntradaAnimada delay={0.1}>
       <div className="relative rounded-2xl shadow-sm">
         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
           <Search className="h-5 w-5 text-slate-400" />
@@ -240,13 +267,15 @@ export const InventarioTab: React.FC = () => {
           className="block w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs"
         />
       </div>
+      </EntradaAnimada>
 
       {/* LISTADO DE TABLAS DE INVENTARIO AGRUPADAS POR MINISTERIO */}
       {todosLosGrupos.length > 0 ? (
         <div className="space-y-8">
-          {todosLosGrupos.map((grupo) => {
+          {todosLosGrupos.map((grupo, index) => {
             return (
-              <div key={grupo.id_ministerio} className="bg-white rounded-3xl border border-slate-205 shadow-sm overflow-hidden p-6 space-y-4">
+              <EntradaAnimada key={grupo.id_ministerio} delay={0.18 + index * 0.1} hover>
+              <div className="bg-white rounded-3xl border border-slate-205 shadow-sm overflow-hidden p-6 space-y-4">
                 
                 {/* ENCABEZADO DEL GRUPO DE MINISTERIO */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center pb-4 border-b border-slate-150 gap-2">
@@ -279,8 +308,13 @@ export const InventarioTab: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-slate-100 text-xs text-slate-800">
-                      {grupo.items.map((item) => (
-                        <tr key={item.codigo} className="hover:bg-slate-50/50 transition">
+                      {grupo.items.map((item, itemIndex) => (
+                        <motion.tr
+                          key={item.codigo}
+                          initial={{ opacity: 0, y: -8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.3 + itemIndex * 0.03, duration: 0.35, ease: 'easeOut' }}
+                          className="hover:bg-slate-50/50 transition">
                           {/* CODIGO */}
                           <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-slate-900 font-mono border-r border-slate-100">
                             Cod. {/^\d+$/.test(item.codigo) && Number(item.codigo) < 10 ? `0${item.codigo}` : item.codigo}
@@ -306,10 +340,10 @@ export const InventarioTab: React.FC = () => {
                           {/* ESTADO */}
                           <td className="px-4 py-4 text-center border-r border-slate-100">
                             <span className={`px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm border-2 inline-block ${
-                              item.estado === 'disponible' ? 'bg-emerald-600 text-white border-emerald-500' :
-                              item.estado === 'en_uso' ? 'bg-blue-500 text-white border-blue-400' :
-                              item.estado === 'dano' ? 'bg-rose-600 text-white border-rose-500' :
-                              'bg-amber-500 text-white border-amber-400'
+                              item.estado === 'disponible' ? 'bg-[#D1FAE5] text-[#047857] border-[#A7F3D0]' :
+                              item.estado === 'en_uso' ? 'bg-[#E0E7FF] text-[#3730A3] border-[#C7D2FE]' :
+                              item.estado === 'dano' ? 'bg-[#FEE2E2] text-[#B91C1C] border-[#FECACA]' :
+                              'bg-[#FEF3C7] text-[#92400E] border-[#FDE68A]'
                             }`}>
                               {item.estado}
                             </span>
@@ -324,7 +358,7 @@ export const InventarioTab: React.FC = () => {
                           {/* PROCEDENCIA */}
                           <td className="px-4 py-4 text-center font-semibold text-slate-700 border-r border-slate-100 bg-slate-50/40">
                             <span className={`px-2.5 py-0.75 text-[10px] rounded border ${
-                              item.procedencia === 'Comprado' ? 'bg-sky-50 text-sky-850 border-sky-200 font-bold' : 'bg-purple-50 text-purple-750 border-purple-200 font-bold'
+                              item.procedencia === 'Comprado' ? 'bg-[#E0F2FE] text-[#0369A1] border-[#BAE6FD] font-bold' : 'bg-[#D1FAE5] text-[#047857] border-[#A7F3D0] font-bold'
                             }`}>
                               {item.procedencia}
                             </span>
@@ -333,7 +367,7 @@ export const InventarioTab: React.FC = () => {
                           {/* VERIFICACION */}
                           <td className="px-4 py-4 text-center border-r border-slate-100">
                             <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${
-                              item.verificacion === 'Sí' ? 'bg-teal-50 text-teal-700 border border-teal-200' : 'bg-gray-100 text-gray-500 border border-gray-200'
+                              item.verificacion === 'Sí' ? 'bg-[#D1FAE5] text-[#047857] border border-[#A7F3D0]' : 'bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0]'
                             } border`}>
                               {item.verificacion || 'Sí'}
                             </span>
@@ -359,26 +393,27 @@ export const InventarioTab: React.FC = () => {
                             </button>
                             <button
                               onClick={() => abrirFormEditar(item)}
-                              className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                              className="p-1.5 text-[#FD6E6E] hover:bg-[#FDE7E7] rounded-lg transition cursor-pointer"
                               title="Editar Activo"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => manejarEliminar(item.codigo, item.descripcion)}
-                              className="p-1.5 text-red-650 hover:bg-red-50 hover:text-red-850 rounded-lg transition text-red-600 cursor-pointer"
+                              className="p-1.5 text-red-650 hover:bg-[#FDE7E7] hover:text-red-850 rounded-lg transition text-[#FD6E6E] cursor-pointer"
                               title="Remover"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </td>
-                        </tr>
+                        </motion.tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
 
               </div>
+              </EntradaAnimada>
             );
           })}
         </div>
@@ -390,8 +425,8 @@ export const InventarioTab: React.FC = () => {
 
       {/* MODAL: DETALLES DE UN ARTICULO */}
       {itemVerDetalle && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-md w-full">
+        <div className="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm overscroll-contain flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-150 flex justify-between items-center rounded-t-3xl bg-white">
               <div>
                 <span className="text-[10px] uppercase font-mono tracking-wider font-semibold text-indigo-600">ID del artículo: {itemVerDetalle.codigo}</span>
@@ -420,10 +455,10 @@ export const InventarioTab: React.FC = () => {
                 <div className="bg-slate-50 p-3 rounded-xl border flex flex-col justify-between">
                   <span className="block text-[9px] uppercase font-mono text-slate-400">Estado Físico</span>
                   <span className={`block text-center font-black text-[11px] uppercase tracking-widest px-3.5 py-1.5 rounded-full border-2 mt-1.5 ${
-                    itemVerDetalle.estado === 'disponible' ? 'bg-emerald-600 text-white border-emerald-500' :
-                    itemVerDetalle.estado === 'en_uso' ? 'bg-blue-500 text-white border-blue-400' :
-                    itemVerDetalle.estado === 'dano' ? 'bg-rose-600 text-white border-rose-500' :
-                    'bg-amber-500 text-white border-amber-400'
+                    itemVerDetalle.estado === 'disponible' ? 'bg-[#D1FAE5] text-[#047857] border-[#A7F3D0]' :
+                    itemVerDetalle.estado === 'en_uso' ? 'bg-[#E0E7FF] text-[#3730A3] border-[#C7D2FE]' :
+                    itemVerDetalle.estado === 'dano' ? 'bg-[#FEE2E2] text-[#B91C1C] border-[#FECACA]' :
+                    'bg-[#FEF3C7] text-[#92400E] border-[#FDE68A]'
                   }`}>
                     {itemVerDetalle.estado}
                   </span>
@@ -463,8 +498,8 @@ export const InventarioTab: React.FC = () => {
 
       {/* MODAL: FORMULARIO CRUD CREAR/EDITAR */}
       {modalAbierto && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-md w-full">
+        <div className="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm overscroll-contain flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-xl w-full max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-150 flex justify-between items-center bg-white rounded-t-3xl">
               <h3 className="text-sm font-black text-slate-855">
                 {modoEdicion ? 'Actualizar Propiedad Activo' : 'Añadir Registro al Inventario'}
@@ -477,8 +512,9 @@ export const InventarioTab: React.FC = () => {
             <form onSubmit={manejarGuardado} className="p-6 space-y-4 text-xs text-slate-850 font-sans">
               
               {errValidacion && (
-                <div className="bg-red-50 text-red-800 border p-2.5 rounded-lg font-mono">
-                  ⚠️ {errValidacion}
+                <div className="bg-[#FDE7E7] text-[#E85B5B] border p-2.5 rounded-lg font-mono flex items-center space-x-2">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                  <span>{errValidacion}</span>
                 </div>
               )}
 
@@ -533,7 +569,8 @@ export const InventarioTab: React.FC = () => {
                     value={cantidad}
                     onChange={(e) => setCantidad(Number(e.target.value))}
                     className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 focus:outline-none"
-                  />
+                      placeholder="Ingrese la cantidad"
+                    />
                 </div>
                 <div>
                   <label className="block text-slate-550 font-bold uppercase text-[10px]">Unidad de Medida (UNIDAD)</label>
@@ -697,12 +734,17 @@ export const InventarioTab: React.FC = () => {
       {reportePdfAbierto && (
         <GeneradorPDF
           titulo="Libro Registro de Inventarios y Activos Fijos de la Iglesia Filadelfia"
+          seccion="ESCUELA BIBLICA y DISCIPULADO"
           columnas={columnasPdf}
           datos={datosPdf}
+          pistas={pistasExcel}
+          anchos={anchosExcel}
+          excelColumnas={columnasExcel}
+          excelDatos={datosExcel}
           alCerrar={() => setReportePdfAbierto(false)}
         />
       )}
 
-    </div>
+    </motion.div>
   );
 };

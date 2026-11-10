@@ -7,7 +7,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 
 @Controller('activities')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('pastor', 'secretaria', 'tesorero')
+@Roles('pastor', 'secretaria')
 export class ActivitiesController {
   constructor(
     @Inject(ActivitiesService)

@@ -1,7 +1,9 @@
-// ESTE COMPONENTE ADMINISTRA EL CICLO DE VIDA CRUD PARA LA TABLA MIEMBROS
+﻿// ESTE COMPONENTE ADMINISTRA EL CICLO DE VIDA CRUD PARA LA TABLA MIEMBROS
 // CONTIENE EL FORMULARIO INTEGRAL CON LOS 23 CAMPOS EXIGIDOS Y CARACTERÍSTICAS DE IMPRESIÓN EN FORMATO PDF
 
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { EntradaAnimada } from '../componentes/EntradaAnimada';
 import { useApp } from '../contextos/AppContexto';
 import { Miembro } from '../tipos';
 import { Plus, Search, FileText, Eye, Edit, Trash2, X, Check, AlertTriangle, ShieldCheck } from 'lucide-react';
@@ -9,60 +11,67 @@ import { GeneradorPDF } from '../componentes/GeneradorPDF';
 
 // UTILIDAD PARA ENCONTRAR ESTILO DE BADGES DE MINISTERIOS SEGÚN EL REPORTE VISUAL DE REFERENCIA
 export const obtenerEstiloBadgeMinisterio = (min: string) => {
-  const norm = min.toUpperCase().trim();
+  const norm = min.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+  // Variante "suave" para chips sin seleccionar: siempre con color
+  const desconocido = (clasesStaff: { bg: string; border: string; text: string }, label: string) => ({
+    classes: `${clasesStaff.bg} ${clasesStaff.border} ${clasesStaff.text}`,
+    soft: `bg-white ${clasesStaff.border} ${clasesStaff.text}`,
+    label,
+  });
+
+  // Paleta de colores vivos como respaldo para ministerios no catalogados (siempre un color)
+  const PALETA_VIVA = [
+    { bg: 'bg-[#FFE4E6]', border: 'border-[#FECDD3]', text: 'text-[#E11D48]' }, // rosa
+    { bg: 'bg-[#FFEDD5]', border: 'border-[#FED7AA]', text: 'text-[#C2410C]' }, // naranja
+    { bg: 'bg-[#FEF3C7]', border: 'border-[#FDE68A]', text: 'text-[#92400E]' }, // dorado
+    { bg: 'bg-[#D1FAE5]', border: 'border-[#A7F3D0]', text: 'text-[#047857]' }, // verde
+    { bg: 'bg-[#CCFBF1]', border: 'border-[#99F6E4]', text: 'text-[#0F766E]' }, // teal
+    { bg: 'bg-[#E0F2FE]', border: 'border-[#BAE6FD]', text: 'text-[#0369A1]' }, // azul
+    { bg: 'bg-[#E0E7FF]', border: 'border-[#C7D2FE]', text: 'text-[#3730A3]' }, // índigo
+    { bg: 'bg-[#EDE9FE]', border: 'border-[#DDD6FE]', text: 'text-[#7C3AED]' }, // violeta
+    { bg: 'bg-[#FCE7F3]', border: 'border-[#FBCFE8]', text: 'text-[#BE185D]' }, // fucsia
+    { bg: 'bg-[#FEE2E2]', border: 'border-[#FECACA]', text: 'text-[#B91C1C]' }, // rojo
+  ];
+  const hashTexto = (texto: string) => {
+    let h = 0;
+    for (let i = 0; i < texto.length; i++) {
+      h = (h * 31 + texto.charCodeAt(i)) >>> 0;
+    }
+    return h;
+  };
+  const respaldoVivo = (nombre: string) => desconocido(PALETA_VIVA[hashTexto(nombre) % PALETA_VIVA.length], nombre.toUpperCase());
+
   if (norm.includes('DISIMULADO') || norm.includes('DISCIPULADO')) {
-    return {
-      classes: 'bg-[#FAF5FF] border-[#E8D5FD] text-[#822DF9]',
-      label: 'DISIMULADO'
-    };
+    return desconocido({ bg: 'bg-[#EDE9FE]', border: 'border-[#DDD6FE]', text: 'text-[#6D28D9]' }, 'DISIMULADO');
   }
   if (norm.includes('COMUNION')) {
-    return {
-      classes: 'bg-[#EDFCF2] border-[#D1FADF] text-[#027E35]',
-      label: 'COMUNION'
-    };
+    return desconocido({ bg: 'bg-[#D1FAE5]', border: 'border-[#A7F3D0]', text: 'text-[#047857]' }, 'COMUNION');
   }
   if (norm.includes('ADORACION')) {
-    return {
-      classes: 'bg-[#FEFBF2] border-[#E2B080] text-[#B85704]',
-      label: 'ADORACION'
-    };
+    return desconocido({ bg: 'bg-[#FFE4E6]', border: 'border-[#FECDD3]', text: 'text-[#E11D48]' }, 'ADORACION');
   }
   if (norm.includes('EVANGELISMO')) {
-    return {
-      classes: 'bg-[#FFF1F2] border-[#FECDD3] text-[#E11D48]',
-      label: 'EVANGELISMO'
-    };
+    return desconocido({ bg: 'bg-[#FFEDD5]', border: 'border-[#FED7AA]', text: 'text-[#C2410C]' }, 'EVANGELISMO');
   }
-  // Alternativas descriptivas o registradas
   if (norm.includes('ALABANZA')) {
-    return {
-      classes: 'bg-amber-50 border-amber-200 text-amber-700',
-      label: 'ALABANZA'
-    };
+    return desconocido({ bg: 'bg-[#E0E7FF]', border: 'border-[#C7D2FE]', text: 'text-[#3730A3]' }, 'ALABANZA');
   }
   if (norm.includes('EDUCACION')) {
-    return {
-      classes: 'bg-sky-50 border-sky-200 text-sky-700',
-      label: 'EDUCACION'
-    };
+    return desconocido({ bg: 'bg-[#E0F2FE]', border: 'border-[#BAE6FD]', text: 'text-[#0369A1]' }, 'EDUCACION');
   }
   if (norm.includes('DAMAS')) {
-    return {
-      classes: 'bg-rose-50 border-rose-200 text-rose-700',
-      label: 'DAMAS'
-    };
+    return desconocido({ bg: 'bg-[#FCE7F3]', border: 'border-[#FBCFE8]', text: 'text-[#BE185D]' }, 'DAMAS');
   }
   if (norm.includes('JOVENES')) {
-    return {
-      classes: 'bg-indigo-50 border-indigo-200 text-indigo-700',
-      label: 'JOVENES'
-    };
+    return desconocido({ bg: 'bg-[#CCFBF1]', border: 'border-[#99F6E4]', text: 'text-[#0F766E]' }, 'JOVENES');
   }
-  return {
-    classes: 'bg-slate-50 border-slate-200 text-slate-700',
-    label: min.toUpperCase()
-  };
+  if (norm.includes('MULTIMEDIA')) {
+    return desconocido({ bg: 'bg-[#EDE9FE]', border: 'border-[#DDD6FE]', text: 'text-[#7C3AED]' }, 'MULTIMEDIA');
+  }
+  if (norm.includes('PASTORAL')) {
+    return desconocido({ bg: 'bg-[#FEF3C7]', border: 'border-[#FDE68A]', text: 'text-[#92400E]' }, 'PASTORAL');
+  }
+  return respaldoVivo(min);
 };
 
 export const MiembrosTab: React.FC = () => {
@@ -92,7 +101,7 @@ export const MiembrosTab: React.FC = () => {
   const [estadoCivil, setEstadoCivil] = useState<'Soltero' | 'Casado' | 'Divorciado' | 'Viudo'>('Soltero');
   const [profesionOficio, setProfesionOficio] = useState<string>('');
   const [direccion, setDireccion] = useState<string>('');
-  const [telefono, setTelefono] = useState<number>(0);
+  const [telefono, setTelefono] = useState<string>('');
   const [ci, setCi] = useState<string>('');
   const [conversion, setConversion] = useState<boolean>(true);
   const [fechaConversion, setFechaConversion] = useState<string>('');
@@ -110,6 +119,28 @@ export const MiembrosTab: React.FC = () => {
   // NUEVOS ESTADOS DE FORMULARIO REQUERIDOS
   const [grupoCategoria, setGrupoCategoria] = useState<'Ninguno' | 'Jóvenes' | 'Mayores'>('Ninguno');
   const [cursosDiscipulado, setCursosDiscipulado] = useState<string[]>([]);
+  const [msgCursos, setMsgCursos] = useState<string>('');
+
+  // Cursos de discipulado en orden obligatorio: 101 → 201 → 301 → 401 → 501
+  const ORDEN_CURSOS = ['101', '201', '301', '401', '501'];
+  const alternarCursoDiscipulado = (num: string, marcar: boolean) => {
+    if (marcar) {
+      const indice = ORDEN_CURSOS.indexOf(num);
+      const faltanPrevios = ORDEN_CURSOS.slice(0, indice).filter(c => !cursosDiscipulado.includes(c));
+      if (faltanPrevios.length > 0) {
+        setMsgCursos(`Para marcar el curso ${num} primero debe completar en orden: ${faltanPrevios.join(', ')}.`);
+        return;
+      }
+      setCursosDiscipulado([...cursosDiscipulado, num]);
+      setMsgCursos('');
+    } else {
+      // Al desmarcar un curso, se desmarcan también todos los posteriores
+      const indice = ORDEN_CURSOS.indexOf(num);
+      const posteriores = ORDEN_CURSOS.slice(indice);
+      setCursosDiscipulado(cursosDiscipulado.filter(c => !posteriores.includes(c)));
+      setMsgCursos('');
+    }
+  };
   const [ministeriosActivos, setMinisteriosActivos] = useState<string[]>([]);
 
   const puedeSeleccionarGrupo = grupoCategoria !== 'Ninguno';
@@ -150,7 +181,7 @@ export const MiembrosTab: React.FC = () => {
     setEstadoCivil('Soltero');
     setProfesionOficio('');
     setDireccion('');
-    setTelefono(0);
+    setTelefono('');
     setCi('');
     setConversion(true);
     setFechaConversion('');
@@ -166,6 +197,7 @@ export const MiembrosTab: React.FC = () => {
     setTipoMiembro('Miembro');
     setGrupoCategoria('Ninguno');
     setCursosDiscipulado([]);
+    setMsgCursos('');
     setMinisteriosActivos([]);
     setErrValidacion('');
   };
@@ -189,7 +221,7 @@ export const MiembrosTab: React.FC = () => {
     setEstadoCivil(m.estado_civil);
     setProfesionOficio(m.profesion_oficio);
     setDireccion(m.direccion);
-    setTelefono(m.telefono);
+    setTelefono(m.telefono ? String(m.telefono) : '');
     setCi(m.ci);
     setConversion(m.conversion);
     setFechaConversion(m.fecha_conversion || '');
@@ -234,13 +266,13 @@ export const MiembrosTab: React.FC = () => {
       estado_civil: estadoCivil,
       profesion_oficio: profesionOficio.trim(),
       direccion: direccion.trim(),
-      telefono: Number(telefono),
+      telefono: telefono.trim() === '' ? null : Number(telefono),
       ci: ci.trim(),
       conversion,
-      fecha_conversion: conversion ? fechaConversion : '',
+      fecha_conversion: conversion ? (fechaConversion || null) : null,
       lugar_conversion: conversion ? lugarConversion.trim() : '',
       bautizado,
-      fecha_bautizo: bautizado ? fechaBautizo : '',
+      fecha_bautizo: bautizado ? (fechaBautizo || null) : null,
       lugar_bautizo: bautizado ? lugarBautizo.trim() : '',
       id_grupo: grupoCategoria === 'Ninguno' ? null : (idGrupo ? Number(idGrupo) : null),
       estado_miembro: estadoMiembro,
@@ -284,9 +316,15 @@ export const MiembrosTab: React.FC = () => {
   ]);
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      className="space-y-6"
+    >
       
       {/* SECCIÓN INICIAL CON BOTONES OPERACIONALES */}
+      <EntradaAnimada>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
         <div>
           <h1 className="text-xl font-extrabold text-slate-900">Control de Membresía General</h1>
@@ -300,17 +338,21 @@ export const MiembrosTab: React.FC = () => {
             <FileText className="w-4 h-4 text-slate-600" />
             <span>Generar Reporte PDF</span>
           </button>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={abrirFormNuevo}
             className="flex-1 sm:flex-initial flex items-center justify-center space-x-1 bg-indigo-650 hover:bg-indigo-700 bg-indigo-600 text-white font-bold px-4 py-2 rounded-xl text-sm shadow-md shadow-indigo-600/10 transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4 font-extrabold" />
             <span>Crear Miembro</span>
-          </button>
+          </motion.button>
         </div>
       </div>
+      </EntradaAnimada>
 
       {/* CONTROLADOR BUSCADOR */}
+      <EntradaAnimada delay={0.1}>
       <div className="relative rounded-2xl shadow-sm">
         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
           <Search className="h-5 w-5 text-slate-400" />
@@ -323,8 +365,10 @@ export const MiembrosTab: React.FC = () => {
           className="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
         />
       </div>
+      </EntradaAnimada>
 
       {/* TABLA DINÁMICA DE REGISTRO DE MIEMBROS */}
+      <EntradaAnimada delay={0.2}>
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-100">
@@ -342,8 +386,13 @@ export const MiembrosTab: React.FC = () => {
             </thead>
             <tbody className="bg-white divide-y divide-slate-100 font-sans">
               {miembrosFiltrados.length > 0 ? (
-                miembrosFiltrados.map((m) => (
-                  <tr key={m.id_miembro} className="hover:bg-slate-50/50 transition-colors">
+                miembrosFiltrados.map((m, index) => (
+                  <motion.tr
+                    key={m.id_miembro}
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.25 + index * 0.03, duration: 0.35, ease: 'easeOut' }}
+                    className="hover:bg-slate-50/50 transition-colors">
                     {/* CI */}
                     <td className="px-4 py-4 whitespace-nowrap text-sm font-semibold text-slate-900">{m.ci}</td>
                     
@@ -367,8 +416,8 @@ export const MiembrosTab: React.FC = () => {
                     <td className="px-4 py-4 whitespace-nowrap text-center">
                       <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-bold ${
                         m.bautizado 
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-250' 
-                          : 'bg-amber-50 text-amber-700 border border-amber-250'
+                          ? 'bg-[#D1FAE5] text-[#047857] border border-[#A7F3D0]'
+                          : 'bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]'
                       }`}>
                         {m.bautizado ? 'Sí' : 'No'}
                       </span>
@@ -400,8 +449,8 @@ export const MiembrosTab: React.FC = () => {
                     <td className="px-4 py-4 whitespace-nowrap text-center">
                       <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border border-2 ${
                         m.estado_miembro === 'Activo' 
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-300' 
-                          : 'bg-red-50 text-red-700 border-red-300'
+                          ? 'bg-[#D1FAE5] text-[#047857] border-[#A7F3D0]' 
+                          : 'bg-[#F1F5F9] text-[#475569] border-[#E2E8F0]'
                       }`}>
                         {m.estado_miembro || 'Pasivo'}
                       </span>
@@ -418,20 +467,20 @@ export const MiembrosTab: React.FC = () => {
                       </button>
                       <button
                         onClick={() => abrirFormEditar(m)}
-                        className="p-1.5 text-amber-600 hover:text-amber-800 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+                        className="p-1.5 text-[#FD6E6E] hover:text-[#E85B5B] hover:bg-[#FDE7E7] rounded-lg transition-colors cursor-pointer"
                         title="Editar Registro"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => manejarEliminar(m.id_miembro, `${m.nombres} ${m.apellidos}`)}
-                        className="p-1.5 text-red-650 hover:bg-red-50 hover:text-red-800 text-red-600 rounded-lg transition-colors cursor-pointer"
+                        className="p-1.5 text-red-650 hover:bg-[#FDE7E7] hover:text-[#E85B5B] text-[#FD6E6E] rounded-lg transition-colors cursor-pointer"
                         title="Eliminar del Sistema"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))
               ) : (
                 <tr>
@@ -444,10 +493,11 @@ export const MiembrosTab: React.FC = () => {
           </table>
         </div>
       </div>
+      </EntradaAnimada>
 
       {/* MODAL: VER DETALLE FICHA INTEGRAL DE MIEMBRO (TODOS LOS CAMPOS) */}
       {miembroVerDetalle && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm overscroll-contain flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-150 flex justify-between items-center sticky top-0 bg-white z-10 rounded-t-3xl">
               <div>
@@ -464,17 +514,17 @@ export const MiembrosTab: React.FC = () => {
             <div className="p-6 space-y-6">
               
               {/* RESUMEN DE IDENTIDAD */}
-              <div className="bg-slate-50 p-5 rounded-2xl border-l-4 border-l-[#1565c0] border-y border-r border-slate-200 shadow-sm flex items-center justify-between">
+              <div className="bg-slate-50 p-5 rounded-2xl border-l-4 border-l-[#002060] border-y border-r border-slate-200 shadow-sm flex items-center justify-between">
                 <div>
                   <h4 className="font-black text-slate-850 text-lg tracking-tight">{miembroVerDetalle.nombres} {miembroVerDetalle.apellidos}</h4>
                   <div className="flex items-center space-x-2 mt-1.5">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-indigo-100 text-indigo-700 font-mono shadow-xs">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-[#E0E7FF] text-[#3730A3] font-mono shadow-xs border border-[#C7D2FE]">
                       {miembroVerDetalle.tipo_miembro}
                     </span>
                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider font-mono shadow-xs ${
                       String(miembroVerDetalle.estado_miembro).toLowerCase() === 'activo'
-                        ? 'bg-emerald-100 text-emerald-700'
-                        : 'bg-amber-100 text-amber-700'
+                        ? 'bg-[#D1FAE5] text-[#047857]'
+                        : 'bg-[#F1F5F9] text-[#475569]'
                     }`}>
                       {miembroVerDetalle.estado_miembro}
                     </span>
@@ -523,7 +573,7 @@ export const MiembrosTab: React.FC = () => {
                 <h5 className="font-mono font-extrabold uppercase text-indigo-900 tracking-wider">Historial de Sacramentos</h5>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <p className="font-semibold">¿Está convertido?: <span className={miembroVerDetalle.conversion ? "text-emerald-700 font-bold" : "text-amber-700"}>{miembroVerDetalle.conversion ? 'SÍ' : 'NO'}</span></p>
+                    <p className="font-semibold">¿Está convertido?: <span className={miembroVerDetalle.conversion ? "text-[#3F5F5A] font-bold" : "text-[#E85B5B]"}>{miembroVerDetalle.conversion ? 'SÍ' : 'NO'}</span></p>
                     {miembroVerDetalle.conversion && (
                       <div className="text-[11px] text-slate-550 border-l-2 border-indigo-400 pl-2">
                         <p>Fecha: {miembroVerDetalle.fecha_conversion || 'N/R'}</p>
@@ -533,7 +583,7 @@ export const MiembrosTab: React.FC = () => {
                   </div>
 
                   <div className="space-y-1">
-                    <p className="font-semibold">¿Está bautizado?: <span className={miembroVerDetalle.bautizado ? "text-emerald-700 font-bold" : "text-amber-700"}>{miembroVerDetalle.bautizado ? 'SÍ' : 'NO'}</span></p>
+                    <p className="font-semibold">¿Está bautizado?: <span className={miembroVerDetalle.bautizado ? "text-[#3F5F5A] font-bold" : "text-[#E85B5B]"}>{miembroVerDetalle.bautizado ? 'SÍ' : 'NO'}</span></p>
                     {miembroVerDetalle.bautizado && (
                       <div className="text-[11px] text-slate-550 border-l-2 border-indigo-400 pl-2">
                         <p>Fecha: {miembroVerDetalle.fecha_bautizo || 'N/R'}</p>
@@ -584,11 +634,11 @@ export const MiembrosTab: React.FC = () => {
                           key={num}
                           className={`px-2 py-1 rounded font-mono text-[11px] font-black flex items-center gap-1 border-2 ${
                             aprobado
-                              ? 'bg-emerald-50 text-emerald-800 border-emerald-400 shadow-sm'
+                              ? 'bg-[#E0E7FF] text-[#3730A3] border-[#C7D2FE] shadow-sm'
                               : 'bg-slate-50 text-slate-300 border-slate-100 line-through'
                           }`}
                         >
-                          {aprobado ? '✓' : '✗'} {num}
+                          {aprobado ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />} {num}
                         </span>
                       );
                     })}
@@ -641,8 +691,8 @@ export const MiembrosTab: React.FC = () => {
 
       {/* MODAL: FORMULARIO CRUD CREAR/EDITAR ELEMENTO */}
       {modalAbierto && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-3xl w-full max-h-[90vh] flex flex-col">
+        <div className="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm overscroll-contain flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-6xl w-full max-h-[92vh] flex flex-col">
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-150 flex justify-between items-center">
               <h3 className="text-base font-black text-slate-850">
                 {modoEdicion ? 'Actualizar Ficha de Miembro' : 'Añadir Nuevo Miembro al Registro'}
@@ -655,10 +705,10 @@ export const MiembrosTab: React.FC = () => {
               </button>
             </div>
 
-            <form onSubmit={manejarGuardado} className="p-6 overflow-y-auto space-y-5 flex-1 text-slate-800">
+            <form onSubmit={manejarGuardado} className="p-5 overflow-y-auto space-y-4 flex-1 text-slate-800">
               {errValidacion && (
-                <div className="bg-red-55 border border-red-200 p-3 rounded-xl flex items-center space-x-2 text-xs text-red-750 bg-red-100">
-                  <AlertTriangle className="w-4 h-4 text-red-650" />
+                <div className="bg-[#FDE7E7] border border-[#F5BEBE] p-3 rounded-xl flex items-center space-x-2 text-xs text-[#E85B5B]">
+                  <AlertTriangle className="w-4 h-4 text-[#FD6E6E]" />
                   <span>{errValidacion}</span>
                 </div>
               )}
@@ -667,7 +717,7 @@ export const MiembrosTab: React.FC = () => {
               <div className="space-y-4">
                 <h4 className="text-xs uppercase font-extrabold text-indigo-900 font-mono tracking-wider">1. Datos de Identificación Personal</h4>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-650 font-mono uppercase">Nombres</label>
                     <input
@@ -676,6 +726,7 @@ export const MiembrosTab: React.FC = () => {
                       value={nombres}
                       onChange={(e) => setNombres(e.target.value)}
                       className="mt-1 block w-full px-3 py-1.8 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-900"
+                      placeholder="Ingrese su nombre(s)"
                     />
                   </div>
                   <div>
@@ -686,6 +737,7 @@ export const MiembrosTab: React.FC = () => {
                       value={apellidos}
                       onChange={(e) => setApellidos(e.target.value)}
                       className="mt-1 block w-full px-3 py-1.8 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-900"
+                      placeholder="Ingrese sus apellidos"
                     />
                   </div>
                   <div>
@@ -696,6 +748,7 @@ export const MiembrosTab: React.FC = () => {
                       value={ci}
                       onChange={(e) => setCi(e.target.value)}
                       className="mt-1 block w-full px-3 py-1.8 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-900"
+                      placeholder="Ingrese su C.I. o cedula de identidad"
                     />
                   </div>
                 </div>
@@ -746,7 +799,7 @@ export const MiembrosTab: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="col-span-2">
                     <label className="block text-xs font-semibold text-slate-650 font-mono uppercase">Lugar de Nacimiento</label>
                     <input
@@ -762,9 +815,10 @@ export const MiembrosTab: React.FC = () => {
                     <input
                       type="number"
                       required
-                      value={telefono || ''}
-                      onChange={(e) => setTelefono(Number(e.target.value))}
+                      value={telefono}
+                      onChange={(e) => setTelefono(e.target.value)}
                       className="mt-1 block w-full px-3 py-1.8 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none text-slate-900"
+                      placeholder="Ingrese su telefono o celular"
                     />
                   </div>
                 </div>
@@ -777,6 +831,7 @@ export const MiembrosTab: React.FC = () => {
                       value={profesionOficio}
                       onChange={(e) => setProfesionOficio(e.target.value)}
                       className="mt-1 block w-full px-3 py-1.8 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none text-slate-900"
+                      placeholder="Ingrese su profesion u oficio"
                     />
                   </div>
                   <div>
@@ -786,6 +841,7 @@ export const MiembrosTab: React.FC = () => {
                       value={direccion}
                       onChange={(e) => setDireccion(e.target.value)}
                       className="mt-1 block w-full px-3 py-1.8 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none text-slate-900"
+                      placeholder="Ingrese su direccion o referencia"
                     />
                   </div>
                 </div>
@@ -828,7 +884,8 @@ export const MiembrosTab: React.FC = () => {
                             value={lugarConversion}
                             onChange={(e) => setLugarConversion(e.target.value)}
                             className="mt-0.5 block w-full px-2 py-1 bg-white border border-slate-300 rounded text-xs focus:outline-none text-slate-900"
-                          />
+                      placeholder="Ingrese el lugar de conversion"
+                    />
                         </div>
                       </div>
                     )}
@@ -865,7 +922,8 @@ export const MiembrosTab: React.FC = () => {
                             value={lugarBautizo}
                             onChange={(e) => setLugarBautizo(e.target.value)}
                             className="mt-0.5 block w-full px-2 py-1 bg-white border border-slate-300 rounded text-xs focus:outline-none text-slate-900"
-                          />
+                      placeholder="Ingrese el lugar de bautizo"
+                    />
                         </div>
                       </div>
                     )}
@@ -981,7 +1039,7 @@ export const MiembrosTab: React.FC = () => {
                   {/* CURSOS DE DISCIPULADO CHECKBOXES */}
                   <div>
                     <label className="block text-xs font-extrabold text-slate-750 font-mono uppercase mb-2">Cursos de Discipulado Avanzado</label>
-                    <p className="text-[11px] text-slate-400 mb-2">Marque las casillas de los cursos que ha culminado con check:</p>
+                    <p className="text-[11px] text-slate-400 mb-2">Marque los cursos culminados <span className="font-bold text-slate-600">en orden</span>: 101 → 201 → 301 → 401 → 501 (cada uno exige los anteriores):</p>
                     <div className="grid grid-cols-5 gap-2">
                       {['101', '201', '301', '401', '501'].map((num) => {
                         const estaChecked = cursosDiscipulado.includes(num);
@@ -997,13 +1055,7 @@ export const MiembrosTab: React.FC = () => {
                             <input
                               type="checkbox"
                               checked={estaChecked}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setCursosDiscipulado([...cursosDiscipulado, num]);
-                                } else {
-                                  setCursosDiscipulado(cursosDiscipulado.filter(c => c !== num));
-                                }
-                              }}
+                              onChange={(e) => alternarCursoDiscipulado(num, e.target.checked)}
                               className="sr-only"
                             />
                             <span className="text-[11px] font-mono">{num}</span>
@@ -1012,12 +1064,17 @@ export const MiembrosTab: React.FC = () => {
                                 ? 'bg-indigo-600 border-indigo-600 text-white'
                                 : 'bg-slate-50 border-slate-300'
                             }`}>
-                              {estaChecked && '✓'}
+                              {estaChecked && <Check className="w-3 h-3" />}
                             </div>
                           </label>
                         );
                       })}
                     </div>
+                    {msgCursos && (
+                      <p className="text-[10px] text-[#B91C1C] font-sans font-bold mt-2 flex items-center gap-1">
+                        <AlertTriangle className="w-3.5 h-3.5 inline" /> {msgCursos}
+                      </p>
+                    )}
                   </div>
 
                   {/* MINISTERIOS ACTIVOS SELECTION MENU */}
@@ -1051,8 +1108,8 @@ export const MiembrosTab: React.FC = () => {
                               estaSeleccionado
                                 ? obtenerEstiloBadgeMinisterio(minName).classes + ' scale-105 border-indigo-600 shadow'
                                 : !estaSeleccionado && isMaxReached
-                                  ? 'bg-slate-100 border-slate-150 text-slate-300 cursor-not-allowed scale-95 opacity-50'
-                                  : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                                  ? obtenerEstiloBadgeMinisterio(minName).soft + ' cursor-not-allowed scale-95 opacity-50'
+                                  : obtenerEstiloBadgeMinisterio(minName).soft + ' hover:shadow-sm'
                             }`}
                           >
                             {minName}
@@ -1061,7 +1118,7 @@ export const MiembrosTab: React.FC = () => {
                       })}
                     </div>
                     {ministeriosActivos.length >= 3 && (
-                      <p className="text-[10px] text-amber-600 font-mono mt-2 flex items-center gap-1">
+                      <p className="text-[10px] text-[#FD6E6E] font-mono mt-2 flex items-center gap-1">
                         <AlertTriangle className="w-3.5 h-3.5 inline" /> Has alcanzado el límite máximo de 3 ministerios activos.
                       </p>
                     )}
@@ -1123,12 +1180,13 @@ export const MiembrosTab: React.FC = () => {
       {reportePdfAbierto && (
         <GeneradorPDF
           titulo="Libro de Registro Oficial de Miembros de Iglesia Filadelfia"
+          seccion="Libro de Registro de Miembros"
           columnas={columnasPdf}
           datos={datosPdf}
           alCerrar={() => setReportePdfAbierto(false)}
         />
       )}
 
-    </div>
+    </motion.div>
   );
 };

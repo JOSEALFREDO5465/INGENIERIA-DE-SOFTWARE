@@ -17,8 +17,8 @@ export class ActivityEntity {
   @Column({ name: 'actividad', type: 'varchar' })
   actividad: string;
 
-  @Column({ name: 'proposito', type: 'varchar' })
-  proposito: string;
+  @Column({ name: 'proposito', type: 'jsonb', default: () => "'[]'::jsonb" })
+  proposito: string[];
 
   @Column({ name: 'responsable', type: 'varchar' })
   responsable: string;

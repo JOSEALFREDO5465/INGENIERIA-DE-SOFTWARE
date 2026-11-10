@@ -1,9 +1,10 @@
-// ESTE COMPONENTE CONTIENE LA VISTA DE ACCESO AL SISTEMA (LOGIN)
+﻿// ESTE COMPONENTE CONTIENE LA VISTA DE ACCESO AL SISTEMA (LOGIN)
 // ADEMÁS INCLUYE LA OPCIÓN REQUERIDA PARA "SOLICITAR CUENTA" 
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Church, Lock, User, Mail, UserPlus, ArrowLeft, ArrowRight, CheckCircle, ShieldAlert } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Church, Lock, User, Mail, UserPlus, ArrowLeft, ArrowRight, CheckCircle, ShieldAlert, AlertTriangle } from 'lucide-react';
 import { useApp } from '../contextos/AppContexto';
 
 export const Login: React.FC = () => {
@@ -88,41 +89,56 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#e0f2fe] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-[#F5F6FF] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
       
-      {/* EFECTOS VISUALES DE FONDO CELESTES */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#bae6fd]/30 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#38bdf8]/20 rounded-full blur-3xl"></div>
+      {/* EFECTOS VISUALES DE FONDO FILADELFIA */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#E3E8FF]/60 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#C7D2FE]/40 rounded-full blur-3xl"></div>
  
-      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+      <motion.div
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className="sm:mx-auto sm:w-full sm:max-w-md relative z-10"
+      >
         <div className="flex justify-center">
-          <img src="/src/img/logo.png" alt="Logo Iglesia Centro Evangélico Filadelfia" className="w-24 h-24 object-contain"/>
+          <motion.img
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
+            src="/src/img/logo.png" alt="Logo Iglesia Centro Evangélico Filadelfia" className="w-24 h-24 object-contain"
+          />
         </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-black tracking-tight animate-fade-in">
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-black tracking-tight">
           Iglesia Centro Evagelistico Filadelfia
         </h2>
-        <p className="mt-2 text-center text-sm text-[#0284c7] font-semibold">
+        <p className="mt-2 text-center text-sm text-[#002060] font-semibold">
           {esModoSolicitud 
             ? 'Formulario de Solicitud de Cuenta' 
             : 'Una Iglesia con proposito'
           }
         </p>
-      </div>
+      </motion.div>
  
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.5, ease: 'easeOut' }}
+        className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10"
+      >
         <div className="bg-white py-8 px-6 rounded-2xl sm:px-10" style={{ border: '1px solid rgba(14,31,26,0.15)' }}>
           
           {mensajeError && (
-            <div className="mb-4 bg-red-50 border-2 border-red-250 rounded-xl p-3 flex items-start space-x-2.5">
-              <ShieldAlert className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <div className="text-xs text-red-700 font-bold">{mensajeError}</div>
+            <div className="mb-4 bg-[#FDE7E7] border-2 border-[#F5BEBE] rounded-xl p-3 flex items-start space-x-2.5">
+              <ShieldAlert className="w-5 h-5 text-[#B91C1C] flex-shrink-0 mt-0.5" />
+              <div className="text-xs text-[#E85B5B] font-bold">{mensajeError}</div>
             </div>
           )}
  
           {mensajeExito && (
-            <div className="mb-4 bg-emerald-50 border-2 border-emerald-250 rounded-xl p-3.5 flex items-start space-x-2.5">
-              <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
-              <div className="text-xs text-emerald-700 font-bold">{mensajeExito}</div>
+            <div className="mb-4 bg-[#EEF1FE] border-2 border-[#CBD3F0] rounded-xl p-3.5 flex items-start space-x-2.5">
+              <CheckCircle className="w-5 h-5 text-[#3F5F5A] flex-shrink-0 mt-0.5" />
+              <div className="text-xs text-[#3F5F5A] font-bold">{mensajeExito}</div>
             </div>
           )}
  
@@ -135,14 +151,14 @@ export const Login: React.FC = () => {
                 </label>
                 <div className="mt-1 relative rounded-md">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-[#0284c7]" />
+                    <User className="h-5 w-5 text-[#002060]" />
                   </div>
                   <input
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="Ingrese su nombre de usuario"
-                    className="block w-full pl-10 pr-3 py-2.5 bg-white border-2 border-[#bae6fd] rounded-xl text-black placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0ea5e9] focus:border-[#0ea5e9] sm:text-sm"
+                    className="block w-full pl-10 pr-3 py-2.5 bg-white border-2 border-[#CBD3F0] rounded-xl text-black placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4040E0] focus:border-[#4040E0] sm:text-sm"
                   />
                 </div>
               </div>
@@ -153,26 +169,28 @@ export const Login: React.FC = () => {
                 </label>
                 <div className="mt-1 relative rounded-md">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-[#0284c7]" />
+                    <Lock className="h-5 w-5 text-[#002060]" />
                   </div>
                   <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Ingrese su contraseña"
-                    className="block w-full pl-10 pr-3 py-2.5 bg-white border-2 border-[#bae6fd] rounded-xl text-black placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0ea5e9] focus:border-[#0ea5e9] sm:text-sm"
+                    className="block w-full pl-10 pr-3 py-2.5 bg-white border-2 border-[#CBD3F0] rounded-xl text-black placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4040E0] focus:border-[#4040E0] sm:text-sm"
                   />
                 </div>
               </div>
  
               <div>
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   type="submit"
-                  className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl text-sm font-bold text-white bg-[#0ea5e9] hover:bg-[#0284c7] transition-colors cursor-pointer"
+                  className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl text-sm font-bold text-white bg-[#4040E0] hover:bg-[#2F34C4] transition-colors cursor-pointer"
                 >
                   <span>Iniciar Sesión</span>
                   <ArrowRight className="w-4 h-4 ml-2" />
-                </button>
+                </motion.button>
               </div>
  
               <div className="border-t border-slate-200 pt-5 text-center">
@@ -184,7 +202,7 @@ export const Login: React.FC = () => {
                     setMensajeError('');
                     setMensajeExito('');
                   }}
-                  className="w-full flex items-center justify-center space-x-1.5 text-xs text-[#0ea5e9] hover:bg-[#e0f2fe] font-bold transition-colors py-2 bg-[#f0f9ff] rounded-xl border-2 border-[#bae6fd] cursor-pointer"
+                  className="w-full flex items-center justify-center space-x-1.5 text-xs text-[#4040E0] hover:bg-[#E9EBFE] font-bold transition-colors py-2 bg-[#EEF1FE] rounded-xl border-2 border-[#CBD3F0] cursor-pointer"
                 >
                   <UserPlus className="w-3.5 h-3.5" />
                   <span>Solicitar una Cuenta</span>
@@ -200,7 +218,7 @@ export const Login: React.FC = () => {
                 </label>
                 <input
                   type="text" required value={solNombre} onChange={(e) => setSolNombre(e.target.value)} placeholder="Nombre y Apellidos Completos"
-                  className="mt-1 block w-full px-3 py-2 bg-white border-2 border-[#bae6fd] rounded-xl text-black placeholder-slate-400 text-sm focus:ring-2 focus:ring-[#0ea5e9] focus:outline-none"
+                  className="mt-1 block w-full px-3 py-2 bg-white border-2 border-[#CBD3F0] rounded-xl text-black placeholder-slate-400 text-sm focus:ring-2 focus:ring-[#4040E0] focus:outline-none"
                 />
               </div>
  
@@ -210,7 +228,7 @@ export const Login: React.FC = () => {
                 </label>
                 <input
                   type="text" required value={solUser} onChange={(e) => setSolUser(e.target.value)} placeholder="Nombre de usuario"
-                  className="mt-1 block w-full px-3 py-2 bg-white border-2 border-[#bae6fd] rounded-xl text-black placeholder-slate-400 text-sm focus:ring-2 focus:ring-[#0ea5e9] focus:outline-none"
+                  className="mt-1 block w-full px-3 py-2 bg-white border-2 border-[#CBD3F0] rounded-xl text-black placeholder-slate-400 text-sm focus:ring-2 focus:ring-[#4040E0] focus:outline-none"
                 />
               </div>
  
@@ -220,11 +238,11 @@ export const Login: React.FC = () => {
                 </label>
                 <div className="mt-1 relative rounded-md">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-4 w-4 text-[#0284c7]" />
+                    <Mail className="h-4 w-4 text-[#002060]" />
                   </div>
                   <input
                     type="email" required value={solCorreo} onChange={(e) => setSolCorreo(e.target.value)} placeholder="Ingrese un correo electrónico"
-                    className="block w-full pl-9 pr-3 py-2 bg-white border-2 border-[#bae6fd] rounded-xl text-black placeholder-slate-400 text-sm focus:ring-2 focus:ring-[#0ea5e9] focus:outline-none"
+                    className="block w-full pl-9 pr-3 py-2 bg-white border-2 border-[#CBD3F0] rounded-xl text-black placeholder-slate-400 text-sm focus:ring-2 focus:ring-[#4040E0] focus:outline-none"
                   />
                 </div>
               </div>
@@ -236,7 +254,7 @@ export const Login: React.FC = () => {
                   </label>
                   <input
                     type="password" required value={solPass} onChange={(e) => setSolPass(e.target.value)} placeholder="Ingrese una contraseña"
-                    className="mt-1 block w-full px-3 py-2 bg-white border-2 border-[#bae6fd] rounded-xl text-black placeholder-slate-400 text-sm focus:ring-2 focus:ring-[#0ea5e9] focus:outline-none"
+                    className="mt-1 block w-full px-3 py-2 bg-white border-2 border-[#CBD3F0] rounded-xl text-black placeholder-slate-400 text-sm focus:ring-2 focus:ring-[#4040E0] focus:outline-none"
                   />
                 </div>
                 <div>
@@ -245,7 +263,7 @@ export const Login: React.FC = () => {
                   </label>
                   <select
                     value={solRol} onChange={(e) => setSolRol(e.target.value as any)}
-                    className="mt-1 block w-full px-3 py-2 bg-white border-2 border-[#bae6fd] rounded-xl text-black text-sm focus:ring-2 focus:ring-[#0ea5e9] focus:outline-none">
+                    className="mt-1 block w-full px-3 py-2 bg-white border-2 border-[#CBD3F0] rounded-xl text-black text-sm focus:ring-2 focus:ring-[#4040E0] focus:outline-none">
                     <option value="secretaria">Secretaría</option>
                     <option value="pastor">Pastor</option>
                     <option value="tesorero">Tesorero</option>
@@ -253,8 +271,9 @@ export const Login: React.FC = () => {
                 </div>
               </div>
  
-              <div className="pt-2 text-xs text-black bg-[#f0f9ff] p-3 rounded-xl border-2 border-[#bae6fd] font-medium leading-relaxed">
-                ⚠️ <strong>Aviso Importante:</strong> Su cuenta NO se creará inmediatamente. Sus datos serán revisados por un Administrador para su aprobación.
+              <div className="pt-2 text-xs text-black bg-[#EEF1FE] p-3 rounded-xl border-2 border-[#CBD3F0] font-medium leading-relaxed flex items-start space-x-2">
+                <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#002060]" />
+                <span><strong>Aviso Importante:</strong> Su cuenta NO se creará inmediatamente. Sus datos serán revisados por un Administrador para su aprobación.</span>
               </div>
  
               <div className="pt-2 flex space-x-3">
@@ -265,14 +284,14 @@ export const Login: React.FC = () => {
                     setMensajeError('');
                     setMensajeExito('');
                   }}
-                  className="flex-1 flex justify-center items-center py-2 px-3 border-2 border-[#bae6fd] hover:bg-[#f0f9ff] rounded-xl text-sm font-bold text-black transition-colors cursor-pointer"
+                  className="flex-1 flex justify-center items-center py-2 px-3 border-2 border-[#CBD3F0] hover:bg-[#EEF1FE] rounded-xl text-sm font-bold text-black transition-colors cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4 mr-1.5" />
                   <span>Atrás</span>
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 flex justify-center items-center py-2 px-3 border border-transparent rounded-xl text-sm font-bold text-white bg-[#0ea5e9] hover:bg-[#0284c7] transition-colors cursor-pointer"
+                  className="flex-1 flex justify-center items-center py-2 px-3 border border-transparent rounded-xl text-sm font-bold text-white bg-[#4040E0] hover:bg-[#2F34C4] transition-colors cursor-pointer"
                 >
                   <span>Enviar</span>
                 </button>
@@ -280,7 +299,7 @@ export const Login: React.FC = () => {
             </form>
           )}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

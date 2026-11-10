@@ -1,7 +1,9 @@
-// ESTE COMPONENTE ADMINISTRA EL CRUD COMPLETO PARA LA TABLA MINISTERIOS
+﻿// ESTE COMPONENTE ADMINISTRA EL CRUD COMPLETO PARA LA TABLA MINISTERIOS
 // EXPONE VISTAS DE ANÁLISIS, EDICIÓN Y EXPORTACIÓN DE DIÁSPORAS DE SERVICIO EN PDF
 
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
+import { EntradaAnimada } from '../componentes/EntradaAnimada';
 import { useApp } from '../contextos/AppContexto';
 import { Ministerio } from '../tipos';
 import { Plus, Search, FileText, Eye, Edit, Trash2, X, AlertTriangle, Users, Package } from 'lucide-react';
@@ -152,9 +154,15 @@ export const MinisteriosTab: React.FC = () => {
   ]);
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      className="space-y-6"
+    >
       
       {/* SECCIÓN ENCABEZADO CON BOTONES ACCIÓN */}
+      <EntradaAnimada>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm font-sans">
         <div>
           <h1 className="text-xl font-extrabold text-slate-900">Ministerios de la Iglesia</h1>
@@ -168,17 +176,21 @@ export const MinisteriosTab: React.FC = () => {
             <FileText className="w-4 h-4 text-slate-600" />
             <span>Generar Reporte PDF</span>
           </button>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={abrirFormNuevo}
             className="flex-1 sm:flex-initial flex items-center justify-center space-x-1 bg-indigo-650 bg-indigo-600 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Crear Ministerio</span>
-          </button>
+          </motion.button>
         </div>
       </div>
+      </EntradaAnimada>
 
       {/* MANDOS BUSCADOR */}
+      <EntradaAnimada delay={0.1}>
       <div className="relative rounded-2xl shadow-sm">
         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
           <Search className="h-5 w-5 text-slate-400" />
@@ -191,8 +203,10 @@ export const MinisteriosTab: React.FC = () => {
           className="block w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs"
         />
       </div>
+      </EntradaAnimada>
 
       {/* SECCIÓN TABLA MINISTERIOS */}
+      <EntradaAnimada delay={0.2}>
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-4">
         {ministeriosFiltrados.length > 0 ? (
           <div className="overflow-x-auto">
@@ -206,13 +220,18 @@ export const MinisteriosTab: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-slate-100 text-xs text-slate-800">
-                {ministeriosFiltrados.map((m) => {
+                {ministeriosFiltrados.map((m, index) => {
                   return (
-                    <tr key={m.id_ministerio} className="hover:bg-slate-50/50 transition">
+                    <motion.tr
+                      key={m.id_ministerio}
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.25 + index * 0.04, duration: 0.35, ease: 'easeOut' }}
+                      className="hover:bg-slate-50/50 transition">
                       {/* MINISTERIO */}
                       <td className="px-5 py-4 border-r border-slate-100 whitespace-nowrap">
                         <div className="flex flex-col">
-                          <span className="font-extrabold text-[#1565c0] text-sm uppercase tracking-wide">
+                          <span className="font-extrabold text-[#002060] text-sm uppercase tracking-wide">
                             {m.nombre_ministerio}
                           </span>
                           <span className="text-[10px] text-slate-450 font-mono italic mt-0.5 max-w-sm truncate block" title={m.mision}>
@@ -248,20 +267,20 @@ export const MinisteriosTab: React.FC = () => {
                         </button>
                         <button
                           onClick={() => abrirFormEditar(m)}
-                          className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition cursor-pointer inline-block"
+                          className="p-1.5 text-[#FD6E6E] hover:bg-[#FDE7E7] rounded-lg transition cursor-pointer inline-block"
                           title="Editar Propiedades"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => manejarEliminar(m.id_ministerio, m.nombre_ministerio)}
-                          className="p-1.5 text-red-650 hover:bg-red-50 hover:text-red-850 rounded-lg transition cursor-pointer inline-block text-red-600"
+                          className="p-1.5 text-red-650 hover:bg-[#FDE7E7] hover:text-red-850 rounded-lg transition cursor-pointer inline-block text-[#FD6E6E]"
                           title="Eliminar"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </td>
-                    </tr>
+                    </motion.tr>
                   );
                 })}
               </tbody>
@@ -273,10 +292,11 @@ export const MinisteriosTab: React.FC = () => {
           </div>
         )}
       </div>
+      </EntradaAnimada>
 
       {/* MODAL: DETALLES EXPUESTOS DE UN MINISTERIO */}
       {minVerDetalle && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm overscroll-contain flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-150 flex justify-between items-center bg-white rounded-t-3xl">
               <div>
@@ -289,7 +309,7 @@ export const MinisteriosTab: React.FC = () => {
             </div>
 
             <div className="p-6 space-y-5 text-xs text-slate-850">
-              <div className="bg-[#1565c0] p-4 rounded-lg border border-indigo-700 shadow-sm text-center" style={{ backgroundColor: '#1565c0' }}>
+              <div className="bg-[#002060] p-4 rounded-lg border border-indigo-700 shadow-sm text-center" style={{ backgroundColor: '#002060' }}>
                 <h2 className="text-sm font-black text-white uppercase tracking-wider">{minVerDetalle.nombre_ministerio}</h2>
               </div>
 
@@ -319,7 +339,7 @@ export const MinisteriosTab: React.FC = () => {
                 >
                   <Users className={`w-4 h-4 mb-1 ${seccionActiva === 'miembros' ? 'text-white' : 'text-slate-400'}`} />
                   {miembros.filter(miem => perteneceAlMinisterio(miem, minVerDetalle.nombre_ministerio)).length > 0 && (
-                    <span className="absolute top-1 right-1.5 bg-rose-600 text-white text-[8px] font-bold h-4 min-w-4 px-1 rounded-full flex items-center justify-center select-none shadow-xs">
+                    <span className="absolute top-1 right-1.5 bg-[#FD6E6E] text-white text-[8px] font-bold h-4 min-w-4 px-1 rounded-full flex items-center justify-center select-none shadow-xs">
                       {miembros.filter(miem => perteneceAlMinisterio(miem, minVerDetalle.nombre_ministerio)).length}
                     </span>
                   )}
@@ -337,7 +357,7 @@ export const MinisteriosTab: React.FC = () => {
                 >
                   <Package className={`w-4 h-4 mb-1 ${seccionActiva === 'inventario' ? 'text-white' : 'text-slate-400'}`} />
                   {inventario.filter(item => Number(item.id_ministerio) === Number(minVerDetalle.id_ministerio)).length > 0 && (
-                    <span className="absolute top-1 right-1.5 bg-emerald-600 text-white text-[8px] font-bold h-4 min-w-4 px-1 rounded-full flex items-center justify-center select-none shadow-xs">
+                    <span className="absolute top-1 right-1.5 bg-[#002060] text-white text-[8px] font-bold h-4 min-w-4 px-1 rounded-full flex items-center justify-center select-none shadow-xs">
                       {inventario.filter(item => Number(item.id_ministerio) === Number(minVerDetalle.id_ministerio)).length}
                     </span>
                   )}
@@ -430,10 +450,10 @@ export const MinisteriosTab: React.FC = () => {
                                 Art: #{item.codigo}
                               </span>
                               <span className={`px-2 py-0.5 text-[8px] font-black rounded uppercase ${
-                                item.estado === 'disponible' ? 'bg-emerald-50 text-emerald-700 border border-emerald-250' :
-                                item.estado === 'en_uso' ? 'bg-sky-50 text-sky-700 border border-sky-250' :
-                                item.estado === 'dano' ? 'bg-rose-50 text-rose-700 border border-rose-250' :
-                                'bg-amber-50 text-amber-700 border border-amber-250'
+                                item.estado === 'disponible' ? 'bg-[#D1FAE5] text-[#047857] border border-[#A7F3D0]' :
+                                item.estado === 'en_uso' ? 'bg-[#E0E7FF] text-[#3730A3] border border-[#C7D2FE]' :
+                                item.estado === 'dano' ? 'bg-[#FEE2E2] text-[#B91C1C] border border-[#FECACA]' :
+                                'bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]'
                               }`}>
                                 {item.estado}
                               </span>
@@ -467,8 +487,8 @@ export const MinisteriosTab: React.FC = () => {
 
       {/* MODAL: FORMULARIO CRUD CREAR/EDITAR */}
       {modalAbierto && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm overscroll-contain flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-150 flex justify-between items-center bg-white rounded-t-3xl">
               <h3 className="text-sm font-black text-slate-850">
                 {modoEdicion ? 'Actualizar Directivas Ministerio' : 'Añadir Registro Ministerio'}
@@ -481,8 +501,9 @@ export const MinisteriosTab: React.FC = () => {
             <form onSubmit={manejarGuardado} className="p-6 space-y-4 text-xs text-slate-800 font-sans">
               
               {errValidacion && (
-                <div className="bg-red-50 text-red-800 border p-2.5 rounded-lg font-mono">
-                  ⚠️ {errValidacion}
+                <div className="bg-[#FDE7E7] text-[#E85B5B] border p-2.5 rounded-lg font-mono flex items-center space-x-2">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                  <span>{errValidacion}</span>
                 </div>
               )}
 
@@ -533,6 +554,7 @@ export const MinisteriosTab: React.FC = () => {
                       value={lider}
                       onChange={(e) => setLider(e.target.value)}
                       className="mt-1 block w-full px-2.5 py-1.8 bg-white border border-slate-300 rounded-lg text-slate-900"
+                      placeholder="Ingrese el nombre del lider del grupo"
                     />
                   </div>
                   <div>
@@ -543,6 +565,7 @@ export const MinisteriosTab: React.FC = () => {
                       value={secretario}
                       onChange={(e) => setSecretario(e.target.value)}
                       className="mt-1 block w-full px-2.5 py-1.8 bg-white border border-slate-300 rounded-lg text-slate-900"
+                      placeholder="Ingrese el nombre del secretario"
                     />
                   </div>
                   <div>
@@ -553,6 +576,7 @@ export const MinisteriosTab: React.FC = () => {
                       value={tesorero}
                       onChange={(e) => setTesorero(e.target.value)}
                       className="mt-1 block w-full px-2.5 py-1.8 bg-white border border-slate-300 rounded-lg text-slate-900"
+                      placeholder="Ingrese el nombre del tesorero"
                     />
                   </div>
                   <div>
@@ -563,6 +587,7 @@ export const MinisteriosTab: React.FC = () => {
                       value={vocal1}
                       onChange={(e) => setVocal1(e.target.value)}
                       className="mt-1 block w-full px-2.5 py-1.8 bg-white border border-slate-300 rounded-lg text-slate-900"
+                      placeholder="Ingrese el nombre del vocal 1"
                     />
                   </div>
                   <div className="col-span-2">
@@ -603,12 +628,13 @@ export const MinisteriosTab: React.FC = () => {
       {reportePdfAbierto && (
         <GeneradorPDF
           titulo="Libro de Actas y Composición de Ministerios Iglesia Filadelfia"
+          seccion="Ministerios de la Iglesia"
           columnas={columnasPdf}
           datos={datosPdf}
           alCerrar={() => setReportePdfAbierto(false)}
         />
       )}
 
-    </div>
+    </motion.div>
   );
 };

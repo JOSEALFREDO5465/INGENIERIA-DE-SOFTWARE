@@ -1,23 +1,25 @@
-// PÁGINA DE GESTIÓN ECONÓMICA CENTRAL (TESORERÍA)
+﻿// PÁGINA DE GESTIÓN ECONÓMICA CENTRAL (TESORERÍA)
 // Diseño con paleta crema, animaciones con framer-motion.
 
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useApp } from '../contextos/AppContexto';
 import { MovimientoEconomico } from '../tipos';
-import { Plus, Search, Eye, Download, X } from 'lucide-react';
+import { Plus, Search, Eye, Download, X, Check, FileSpreadsheet } from 'lucide-react';
 import jsPDF from 'jspdf';
+import { agregarMembretePdf } from '../utilidades/membretePdf';
+import { generarExcelOficial } from '../utilidades/generarExcelOficial';
 
-// Paleta crema
-const CREAM_BG = '#faf8f5';
-const CREAM_CARD = '#f5f0e8';
-const CREAM_BORDER = '#e8e0d4';
-const CREAM_DARK = '#3d3529';
-const CREAM_MUTED = '#8a7e6b';
+// Paleta Resplandor Filadelfia
+const CREAM_BG = '#F5F6FF';
+const CREAM_CARD = '#EEF1FE';
+const CREAM_BORDER = '#CBD3F0';
+const CREAM_DARK = '#002060';
+const CREAM_MUTED = '#4A5B85';
 
-const COLOR_INGRESO = '#10b981';
-const COLOR_OFRENDA = '#3b82f6';
-const COLOR_EGRESO = '#ef4444';
+const COLOR_INGRESO = '#16A34A';
+const COLOR_OFRENDA = '#4040E0';
+const COLOR_EGRESO = '#DC2626';
 
 const mesesCortos = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
@@ -173,7 +175,7 @@ export const EconomiaTab: React.FC = () => {
     setToast({ mensaje: 'Movimiento registrado correctamente', tipo: 'exito' });
   };
 
-  const descargarRecibo = (m: MovimientoEconomico) => {
+  const descargarRecibo = async (m: MovimientoEconomico) => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const colorMap: Record<string, [number, number, number]> = {
@@ -183,29 +185,22 @@ export const EconomiaTab: React.FC = () => {
     };
     const color = colorMap[m.tipo] || [100, 116, 139];
 
-    doc.setFontSize(18);
-    doc.setTextColor(30, 58, 138);
-    doc.text('IGLESIA EVANGELICA FILADELFIA', pageWidth / 2, 20, { align: 'center' });
-    doc.setFontSize(10);
-    doc.setTextColor(100, 116, 139);
-    doc.text('"Proclamando la verdad y sirviendo con amor" - La Paz, Bolivia', pageWidth / 2, 27, { align: 'center' });
+    await agregarMembretePdf(doc, pageWidth);
 
-    doc.setDrawColor(30, 58, 138);
-    doc.setLineWidth(0.5);
-    doc.line(20, 32, pageWidth - 20, 32);
-
-    doc.setFontSize(14);
+    doc.setFontSize(13);
     doc.setTextColor(51, 65, 85);
-    doc.text('RECIBO DE MOVIMIENTO ECONOMICO', pageWidth / 2, 42, { align: 'center' });
+    doc.text('RECIBO DE MOVIMIENTO ECONOMICO', pageWidth / 2, 52, { align: 'center' });
+
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`No. de Recibo: #${m.id_movimiento}   ·   Fecha: ${String(m.fecha).split('T')[0]}`, pageWidth / 2, 59, { align: 'center' });
 
     const rows = [
-      { label: 'No. de Recibo:', value: `#${m.id_movimiento}` },
-      { label: 'Fecha:', value: String(m.fecha).split('T')[0] },
       { label: 'Tipo:', value: m.tipo.toUpperCase() },
       { label: 'Descripcion:', value: m.descripcion },
     ];
 
-    let y = 55;
+    let y = 70;
     doc.setFontSize(11);
     rows.forEach((row) => {
       doc.setTextColor(71, 85, 105);
@@ -234,7 +229,7 @@ export const EconomiaTab: React.FC = () => {
     setToast({ mensaje: 'Recibo PDF descargado correctamente', tipo: 'exito' });
   };
 
-  const descargarReporte = () => {
+  const descargarReporte = async () => {
     const fechaLimite = getFechaLimite();
 
     const filtrados = (movimientosEconomicos || [])
@@ -261,26 +256,20 @@ export const EconomiaTab: React.FC = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
 
-    doc.setFontSize(18);
-    doc.setTextColor(61, 53, 41);
-    doc.text('IGLESIA EVANGELICA FILADELFIA', pageWidth / 2, 20, { align: 'center' });
-    doc.setFontSize(10);
+    await agregarMembretePdf(doc, pageWidth);
+
+    doc.setFontSize(15);
+    doc.setTextColor(0, 32, 96);
+    doc.setFont('helvetica', 'bold');
+    doc.text('REPORTE ECONOMICO', pageWidth / 2, 54, { align: 'center' });
+
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
     doc.setTextColor(138, 126, 107);
-    doc.text('"Proclamando la verdad y sirviendo con amor" - La Paz, Bolivia', pageWidth / 2, 27, { align: 'center' });
+    doc.text(`Filtros: ${tipoLabel} | ${periodoLabel} | Total: ${filtrados.length} movimientos`, pageWidth / 2, 61, { align: 'center' });
+    doc.text('SECCIÓN: TESORERÍA   ·   PASTOR: Pastor Principal   ·   C.E. FILADELFIA', pageWidth / 2, 66, { align: 'center' });
 
-    doc.setDrawColor(232, 224, 212);
-    doc.setLineWidth(0.5);
-    doc.line(20, 32, pageWidth - 20, 32);
-
-    doc.setFontSize(14);
-    doc.setTextColor(61, 53, 41);
-    doc.text('REPORTE ECONOMICO', pageWidth / 2, 42, { align: 'center' });
-
-    doc.setFontSize(9);
-    doc.setTextColor(138, 126, 107);
-    doc.text(`Filtros: ${tipoLabel} | ${periodoLabel} | Total: ${filtrados.length} movimientos`, pageWidth / 2, 50, { align: 'center' });
-
-    const cardY = 58;
+    const cardY = 74;
     const cardW = (pageWidth - 50) / 4;
     const cards = [
       { label: 'Ingresos', value: totalIngresos, color: [16, 185, 129] },
@@ -340,6 +329,44 @@ export const EconomiaTab: React.FC = () => {
     setToast({ mensaje: `Reporte PDF descargado (${filtrados.length} movimientos)`, tipo: 'exito' });
   };
 
+  const descargarReporteExcel = async () => {
+    const fechaLimite = getFechaLimite();
+    const filtrados = (movimientosEconomicos || [])
+      .filter((m) => {
+        if (filtroTipo !== 'todos' && m.tipo !== filtroTipo) return false;
+        const fechaMov = new Date(m.fecha);
+        return fechaMov >= fechaLimite;
+      })
+      .sort((a, b) => b.fecha.localeCompare(a.fecha));
+
+    if (filtrados.length === 0) {
+      setToast({ mensaje: 'No hay movimientos para los filtros seleccionados', tipo: 'error' });
+      return;
+    }
+
+    const datos = filtrados.map((m) => [
+      String(m.fecha).split('T')[0],
+      m.tipo.toUpperCase(),
+      m.descripcion,
+      Number(m.monto),
+    ]);
+
+    try {
+      await generarExcelOficial({
+        titulo: 'Reporte Económico',
+        seccion: 'Tesorería',
+        columnas: ['FECHA', 'TIPO', 'DESCRIPCION', 'MONTO (Bs)'],
+        datos,
+        nombreArchivo: `reporte_economico_${filtroTipo}_${filtroPeriodo}`,
+        totalRegs: filtrados.length,
+      });
+      setToast({ mensaje: `Reporte Excel descargado (${filtrados.length} movimientos)`, tipo: 'exito' });
+    } catch (err) {
+      console.error('Error generando Excel:', err);
+      setToast({ mensaje: 'No se pudo generar el Excel', tipo: 'error' });
+    }
+  };
+
   return (
     <>
       {/* TOAST DE NOTIFICACION (abajo) */}
@@ -354,17 +381,23 @@ export const EconomiaTab: React.FC = () => {
           >
             <div className={`flex items-center space-x-3 px-5 py-3 rounded-xl shadow-lg border text-sm font-bold ${
               toast.tipo === 'exito'
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                : 'bg-rose-50 border-rose-200 text-rose-800'
+                ? 'bg-[#D1FAE5] border-[#A7F3D0] text-[#047857]'
+                : 'bg-[#FDE7E7] border-[#F5BEBE] text-[#E85B5B]'
             }`}>
-              <span className="text-lg">{toast.tipo === 'exito' ? '✓' : '✕'}</span>
+              {toast.tipo === 'exito' ? <Check className="w-5 h-5" /> : <X className="w-5 h-5" />}
               <span>{toast.mensaje}</span>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="space-y-6" style={{ backgroundColor: CREAM_BG }}>
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+        className="space-y-6"
+        style={{ backgroundColor: CREAM_BG }}
+      >
         {/* ENCABEZADO */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -387,7 +420,7 @@ export const EconomiaTab: React.FC = () => {
             className={`flex items-center space-x-2 font-bold px-5 py-2.5 rounded-xl text-sm shadow-md transition ${
               !puedeGestionar ? 'opacity-50 cursor-not-allowed' : 'text-white'
             }`}
-            style={{ backgroundColor: puedeGestionar ? '#0ea5e9' : '#bae6fd' }}
+            style={{ backgroundColor: puedeGestionar ? '#4040E0' : '#D5DBEE' }}
           >
             <Plus className="w-4 h-4" />
             <span>Nuevo Movimiento</span>
@@ -498,7 +531,7 @@ export const EconomiaTab: React.FC = () => {
               Distribucion del mes
             </h3>
             <svg width="160" height="160" viewBox="0 0 160 160" className="transform -rotate-90">
-              <circle cx="80" cy="80" r={donutRadius} fill="none" stroke="#f1f5f9" strokeWidth="16" />
+              <circle cx="80" cy="80" r={donutRadius} fill="none" stroke="#E8ECFC" strokeWidth="16" />
               <motion.circle
                 cx="80" cy="80" r={donutRadius} fill="none"
                 stroke={COLOR_INGRESO} strokeWidth="16"
@@ -596,9 +629,19 @@ export const EconomiaTab: React.FC = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={descargarReporteExcel}
+              className="flex items-center space-x-2 font-bold px-4 py-2.5 rounded-xl text-xs shadow-md transition whitespace-nowrap text-white"
+              style={{ backgroundColor: '#16A34A' }}
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              <span>Descargar Excel</span>
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={descargarReporte}
               className="flex items-center space-x-2 font-bold px-5 py-2.5 rounded-xl text-xs shadow-md transition whitespace-nowrap text-white"
-              style={{ backgroundColor: '#0ea5e9' }}
+              style={{ backgroundColor: '#4040E0' }}
             >
               <Download className="w-4 h-4" />
               <span>Descargar Reporte</span>
@@ -638,9 +681,9 @@ export const EconomiaTab: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: CREAM_DARK }}>{String(m.fecha).split('T')[0]}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                        m.tipo === 'ingreso' ? 'bg-emerald-100 text-emerald-800' :
-                        m.tipo === 'egreso' ? 'bg-rose-100 text-rose-800' :
-                        'bg-blue-100 text-blue-800'
+                        m.tipo === 'ingreso' ? 'bg-[#D1FAE5] text-[#047857]' :
+                        m.tipo === 'egreso' ? 'bg-[#FEE2E2] text-[#B91C1C]' :
+                        'bg-[#E0E7FF] text-[#3730A3]'
                       }`}>
                         {m.tipo}
                       </span>
@@ -660,7 +703,7 @@ export const EconomiaTab: React.FC = () => {
                       </button>
                       <button
                         onClick={() => descargarRecibo(m)}
-                        className="text-emerald-600 hover:bg-emerald-50 px-2 py-1 rounded text-xs transition inline-flex items-center space-x-1"
+                        className="text-[#4A5B85] hover:bg-[#E9EBFE] px-2 py-1 rounded text-xs transition inline-flex items-center space-x-1"
                         title="Descargar recibo"
                       >
                         <Download className="w-4 h-4" />
@@ -687,7 +730,7 @@ export const EconomiaTab: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50"
+              className="modal-overlay fixed inset-0 z-50"
             >
               <div
                 className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300"
@@ -708,8 +751,8 @@ export const EconomiaTab: React.FC = () => {
                   </button>
                 </div>
                 <div className="p-6 flex-1 overflow-y-auto space-y-4">
-                  <div className="text-center border-b-2 pb-4" style={{ borderColor: '#0ea5e9' }}>
-                    <h2 className="text-lg font-extrabold uppercase tracking-widest" style={{ color: '#0ea5e9' }}>IGLESIA FILADELFIA</h2>
+                  <div className="text-center border-b-2 pb-4" style={{ borderColor: '#4040E0' }}>
+                    <h2 className="text-lg font-extrabold uppercase tracking-widest" style={{ color: '#4040E0' }}>IGLESIA FILADELFIA</h2>
                     <p className="text-xs mt-1" style={{ color: CREAM_MUTED }}>"Proclamando la verdad y sirviendo con amor"</p>
                   </div>
                   <div className="text-center">
@@ -729,9 +772,9 @@ export const EconomiaTab: React.FC = () => {
                     <div className="flex justify-between py-2 border-b" style={{ borderColor: CREAM_BORDER }}>
                       <span className="text-xs font-bold uppercase" style={{ color: CREAM_MUTED }}>Tipo</span>
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                        movimientoVer.tipo === 'ingreso' ? 'bg-emerald-100 text-emerald-800' :
-                        movimientoVer.tipo === 'egreso' ? 'bg-rose-100 text-rose-800' :
-                        'bg-blue-100 text-blue-800'
+                        movimientoVer.tipo === 'ingreso' ? 'bg-[#D1FAE5] text-[#047857]' :
+                        movimientoVer.tipo === 'egreso' ? 'bg-[#FEE2E2] text-[#B91C1C]' :
+                        'bg-[#E0E7FF] text-[#3730A3]'
                       }`}>
                         {movimientoVer.tipo.toUpperCase()}
                       </span>
@@ -754,7 +797,7 @@ export const EconomiaTab: React.FC = () => {
                       whileTap={{ scale: 0.97 }}
                       onClick={() => descargarRecibo(movimientoVer)}
                       className="w-full flex items-center justify-center space-x-2 font-bold px-4 py-2.5 rounded-xl text-sm transition shadow-md text-white"
-                      style={{ backgroundColor: '#0ea5e9' }}
+                      style={{ backgroundColor: '#4040E0' }}
                     >
                       <Download className="w-4 h-4" />
                       <span>Descargar Recibo PDF</span>
@@ -773,7 +816,7 @@ export const EconomiaTab: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50"
+              className="modal-overlay fixed inset-0 z-50"
             >
               <div
                 className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300"
@@ -798,7 +841,7 @@ export const EconomiaTab: React.FC = () => {
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="bg-red-50 border border-red-200 p-3 rounded-xl text-xs text-red-700 flex items-center space-x-2"
+                      className="bg-[#FDE7E7] border border-[#F5BEBE] p-3 rounded-xl text-xs text-[#E85B5B] flex items-center space-x-2"
                     >
                       <span>!</span> {errValidacion}
                     </motion.div>
@@ -830,7 +873,7 @@ export const EconomiaTab: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase mb-1" style={{ color: CREAM_MUTED }}>
-                      Descripcion {tipo === 'egreso' ? <span className="text-red-500">*</span> : <span className="font-normal" style={{ color: CREAM_MUTED }}>(opcional)</span>}
+                      Descripcion {tipo === 'egreso' ? <span className="text-[#FD6E6E]">*</span> : <span className="font-normal" style={{ color: CREAM_MUTED }}>(opcional)</span>}
                     </label>
                     <input
                       type="text"
@@ -870,7 +913,7 @@ export const EconomiaTab: React.FC = () => {
                       type="submit"
                       disabled={!puedeGestionar}
                       className={`px-4 py-2 rounded-lg text-xs font-bold transition text-white ${!puedeGestionar ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      style={{ backgroundColor: puedeGestionar ? '#0ea5e9' : '#bae6fd' }}
+                      style={{ backgroundColor: puedeGestionar ? '#4040E0' : '#D5DBEE' }}
                     >
                       Registrar Movimiento
                     </motion.button>
@@ -880,7 +923,7 @@ export const EconomiaTab: React.FC = () => {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </motion.div>
     </>
   );
 };

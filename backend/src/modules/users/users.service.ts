@@ -39,7 +39,9 @@ export class UsersService implements OnModuleInit {
       user.contrasena = await bcrypt.hash(user.contrasena, 10);
     }
     user.fecha_registro = new Date().toISOString();
-    user.ultimo_acceso = '';
+    // La columna ultimo_acceso es timestamptz en la base de datos real:
+    // no acepta cadenas vacías; se deja NULL.
+    (user as any).ultimo_acceso = null;
     const newUser = this.userRepository.create(user);
     return this.userRepository.save(newUser);
   }
