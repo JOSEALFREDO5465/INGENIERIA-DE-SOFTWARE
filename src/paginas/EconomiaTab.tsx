@@ -5,10 +5,9 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useApp } from '../contextos/AppContexto';
 import { MovimientoEconomico } from '../tipos';
-import { Plus, Search, Eye, Download, X, Check, FileSpreadsheet } from 'lucide-react';
+import { Plus, Search, Eye, Download, X, Check } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { agregarMembretePdf } from '../utilidades/membretePdf';
-import { generarExcelOficial } from '../utilidades/generarExcelOficial';
 
 // Paleta Resplandor Filadelfia
 const CREAM_BG = '#F5F6FF';
@@ -290,22 +289,35 @@ export const EconomiaTab: React.FC = () => {
     });
 
     const tableY = cardY + 30;
-    doc.setFontSize(9);
-    doc.setTextColor(255, 255, 255);
-    doc.setFillColor(61, 53, 41);
-    doc.rect(20, tableY, pageWidth - 40, 8, 'F');
-    doc.text('Fecha', 22, tableY + 5.5);
-    doc.text('Tipo', 55, tableY + 5.5);
-    doc.text('Descripcion', 85, tableY + 5.5);
-    doc.text('Monto', pageWidth - 22, tableY + 5.5, { align: 'right' });
 
+    // Encabezado de la tabla (se repite en cada hoja)
+    const dibujarEncabezadoTabla = () => {
+      doc.setFontSize(9);
+      doc.setTextColor(255, 255, 255);
+      doc.setFillColor(61, 53, 41);
+      doc.rect(20, tableY, pageWidth - 40, 8, 'F');
+      doc.text('Fecha', 22, tableY + 5.5);
+      doc.text('Tipo', 55, tableY + 5.5);
+      doc.text('Descripcion', 85, tableY + 5.5);
+      doc.text('Monto', pageWidth - 22, tableY + 5.5, { align: 'right' });
+    };
+    dibujarEncabezadoTabla();
+
+    // Límite de contenido: siempre se reserva el espacio final para la firma
+    const LIMITE_HOJA = 246;
     let y = tableY + 10;
     doc.setTextColor(30, 41, 59);
     doc.setFontSize(8);
     filtrados.forEach((m, idx) => {
-      if (y > 270) {
+      if (y > LIMITE_HOJA) {
         doc.addPage();
-        y = 20;
+        doc.setFontSize(7);
+        doc.setTextColor(138, 126, 107);
+        doc.text('Continuación del Reporte Económico', 20, 12);
+        dibujarEncabezadoTabla();
+        y = tableY + 10;
+        doc.setTextColor(30, 41, 59);
+        doc.setFontSize(8);
       }
       if (idx % 2 === 0) {
         doc.setFillColor(250, 248, 245);
@@ -319,52 +331,34 @@ export const EconomiaTab: React.FC = () => {
       y += 7;
     });
 
-    const footerY = y + 10;
+    // FIRMA: siempre al final del documento
+    const firmaY = y + 16;
+    doc.setDrawColor(0, 32, 96);
+    doc.setLineWidth(0.3);
+    doc.line(pageWidth - 95, firmaY, pageWidth - 35, firmaY);
+    doc.setFontSize(8);
+    doc.setTextColor(60, 60, 60);
+    doc.text('SELLO Y FIRMA RESPONSABLE', pageWidth - 65, firmaY + 5, { align: 'center' });
+    doc.setFontSize(7);
+    doc.text(usuarioActual?.nombre_completo || 'Pastor Principal', pageWidth - 65, firmaY + 10, { align: 'center' });
+
+    const footerY = Math.max(firmaY + 18, y + 12);
     doc.setFontSize(8);
     doc.setTextColor(138, 126, 107);
     doc.text('Reporte generado por el Sistema de Gestion Eclesiastica de Iglesia Filadelfia.', pageWidth / 2, footerY, { align: 'center' });
     doc.text(`Generado el ${new Date().toLocaleString('es-BO')}`, pageWidth / 2, footerY + 5, { align: 'center' });
 
+    // Numeración de hojas
+    const totalHojas = doc.getNumberOfPages();
+    for (let i = 1; i <= totalHojas; i++) {
+      doc.setPage(i);
+      doc.setFontSize(7);
+      doc.setTextColor(138, 126, 107);
+      doc.text(`Hoja ${i} de ${totalHojas}`, pageWidth - 20, 288, { align: 'right' });
+    }
+
     doc.save(`reporte_economico_${filtroTipo}_${filtroPeriodo}_${new Date().toISOString().split('T')[0]}.pdf`);
-    setToast({ mensaje: `Reporte PDF descargado (${filtrados.length} movimientos)`, tipo: 'exito' });
-  };
-
-  const descargarReporteExcel = async () => {
-    const fechaLimite = getFechaLimite();
-    const filtrados = (movimientosEconomicos || [])
-      .filter((m) => {
-        if (filtroTipo !== 'todos' && m.tipo !== filtroTipo) return false;
-        const fechaMov = new Date(m.fecha);
-        return fechaMov >= fechaLimite;
-      })
-      .sort((a, b) => b.fecha.localeCompare(a.fecha));
-
-    if (filtrados.length === 0) {
-      setToast({ mensaje: 'No hay movimientos para los filtros seleccionados', tipo: 'error' });
-      return;
-    }
-
-    const datos = filtrados.map((m) => [
-      String(m.fecha).split('T')[0],
-      m.tipo.toUpperCase(),
-      m.descripcion,
-      Number(m.monto),
-    ]);
-
-    try {
-      await generarExcelOficial({
-        titulo: 'Reporte Económico',
-        seccion: 'Tesorería',
-        columnas: ['FECHA', 'TIPO', 'DESCRIPCION', 'MONTO (Bs)'],
-        datos,
-        nombreArchivo: `reporte_economico_${filtroTipo}_${filtroPeriodo}`,
-        totalRegs: filtrados.length,
-      });
-      setToast({ mensaje: `Reporte Excel descargado (${filtrados.length} movimientos)`, tipo: 'exito' });
-    } catch (err) {
-      console.error('Error generando Excel:', err);
-      setToast({ mensaje: 'No se pudo generar el Excel', tipo: 'error' });
-    }
+    setToast({ mensaje: `Reporte PDF descargado (${filtrados.length} movimientos · ${totalHojas} hoja${totalHojas === 1 ? '' : 's'})`, tipo: 'exito' });
   };
 
   return (
@@ -629,22 +623,12 @@ export const EconomiaTab: React.FC = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={descargarReporteExcel}
-              className="flex items-center space-x-2 font-bold px-4 py-2.5 rounded-xl text-xs shadow-md transition whitespace-nowrap text-white"
-              style={{ backgroundColor: '#16A34A' }}
-            >
-              <FileSpreadsheet className="w-4 h-4" />
-              <span>Descargar Excel</span>
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
               onClick={descargarReporte}
               className="flex items-center space-x-2 font-bold px-5 py-2.5 rounded-xl text-xs shadow-md transition whitespace-nowrap text-white"
               style={{ backgroundColor: '#4040E0' }}
             >
               <Download className="w-4 h-4" />
-              <span>Descargar Reporte</span>
+              <span>Descargar Reporte PDF</span>
             </motion.button>
           </div>
         </motion.div>

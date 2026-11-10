@@ -6,6 +6,7 @@ import { EntradaAnimada } from '../componentes/EntradaAnimada';
 import { useApp } from '../contextos/AppContexto';
 import { Usuario } from '../tipos';
 import { Search, Eye, Edit, Trash2, X, Check, ShieldAlert, BadgeHelp, XCircle, ShieldCheck } from 'lucide-react';
+import { CampoContrasena } from '../componentes/CampoContrasena';
 
 export const UsuariosTab: React.FC = () => {
   const {usuarios, usuarioActual, crearUsuario, actualizarUsuario, eliminarUsuario, aprobarUsuario, rechazarUsuario} = useApp();
@@ -446,8 +447,17 @@ export const UsuariosTab: React.FC = () => {
               {(!modoEdicion || (usuarioActual && usuarioActual.id_usuario === userSeleccionadoId)) ? (
                 <div>
                   <label className="block text-slate-550 font-bold uppercase text-[10px]">{'Escriba su nueva Contraseña'}</label>
-                  <input type="password" required={!modoEdicion} value={contrasena} onChange={(e) => setContrasena(e.target.value)} placeholder="Ingrese su nueva Contraseña"
-                    className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 focus:ring-1 focus:ring-indigo-500"/>
+                  <div className="mt-1">
+                    <CampoContrasena
+                      value={contrasena}
+                      onChange={setContrasena}
+                      placeholder="Ingrese su nueva Contraseña"
+                      required={!modoEdicion}
+                      autoComplete="new-password"
+                      mostrarMedidor
+                      className="!py-2 !text-sm !rounded-xl !border-slate-300"
+                    />
+                  </div>
                 </div>
               ) : (
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center space-x-2 text-slate-500">

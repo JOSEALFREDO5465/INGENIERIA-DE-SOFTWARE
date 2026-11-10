@@ -1,5 +1,5 @@
 // Utilidad para convertir logos (importados por Vite) a base64,
-// necesario para incrustarlos en PDF (jsPDF) y en Excel (ExcelJS).
+// necesario para incrustarlos en los PDF (jsPDF).
 export const cargarLogoBase64 = (src: string): Promise<string> =>
   new Promise((resolve, reject) => {
     const img = new Image();

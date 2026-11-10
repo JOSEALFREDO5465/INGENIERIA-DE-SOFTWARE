@@ -1,11 +1,12 @@
 ﻿// ESTE COMPONENTE CONTIENE LA VISTA DE ACCESO AL SISTEMA (LOGIN)
 // ADEMÁS INCLUYE LA OPCIÓN REQUERIDA PARA "SOLICITAR CUENTA" 
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { Church, Lock, User, Mail, UserPlus, ArrowLeft, ArrowRight, CheckCircle, ShieldAlert, AlertTriangle } from 'lucide-react';
+import { Church, Lock, User, Mail, UserPlus, ArrowLeft, ArrowRight, CheckCircle, ShieldAlert, AlertTriangle, RefreshCw, ImageIcon } from 'lucide-react';
 import { useApp } from '../contextos/AppContexto';
+import { CampoContrasena } from '../componentes/CampoContrasena';
 
 export const Login: React.FC = () => {
   const { iniciarSesion, solicitarCuenta } = useApp();
@@ -18,6 +19,11 @@ export const Login: React.FC = () => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
 
+  // CÓDIGO DE VERIFICACIÓN (CAPTCHA)
+  const [captcha, setCaptcha] = useState<{ id: string; imagen: string } | null>(null);
+  const [codigoCaptcha, setCodigoCaptcha] = useState<string>('');
+  const [cargandoCaptcha, setCargandoCaptcha] = useState<boolean>(true);
+
   // CAMPOS PARA SOLICITUD DE CUENTA NUEVA
   const [solNombre, setSolNombre] = useState<string>('');
   const [solUser, setSolUser] = useState<string>('');
@@ -28,6 +34,29 @@ export const Login: React.FC = () => {
   // MENSAJES Y NOTIFICACIONES
   const [mensajeError, setMensajeError] = useState<string>('');
   const [mensajeExito, setMensajeExito] = useState<string>('');
+
+  // GENERAR / REFRESH DEL CÓDIGO DE VERIFICACIÓN
+  const cargarCaptcha = useCallback(async () => {
+    setCargandoCaptcha(true);
+    setCodigoCaptcha('');
+    try {
+      const res = await fetch('/api/auth/captcha');
+      const data = await res.json();
+      if (data.success && data.captcha) {
+        setCaptcha(data.captcha);
+      } else {
+        setCaptcha(null);
+      }
+    } catch (e) {
+      setCaptcha(null);
+    } finally {
+      setCargandoCaptcha(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    cargarCaptcha();
+  }, [cargarCaptcha]);
 
   // MANEJAR EL ACCESSO DE SEGURIDAD
   const manejarAcceso = async (e: React.FormEvent) => {
@@ -41,10 +70,22 @@ export const Login: React.FC = () => {
       return;
     }
 
-    const resultado = await iniciarSesion(username.trim(), password);
+    if (!codigoCaptcha.trim()) {
+      setMensajeError('Ingrese el código de verificación que aparece en la imagen.');
+      return;
+    }
+
+    const resultado = await iniciarSesion(
+      username.trim(),
+      password,
+      captcha?.id,
+      codigoCaptcha.trim()
+    );
 
     if (!resultado.succes) {
       setMensajeError(resultado.message);
+      // El código de verificación es de un solo uso: se genera uno nuevo
+      cargarCaptcha();
     } else {
       // Navegar a dashboard después de login exitoso
       navigate('/dashboard');
@@ -167,17 +208,60 @@ export const Login: React.FC = () => {
                 <label className="block text-xs font-bold uppercase tracking-wider text-black">
                   Contraseña:
                 </label>
-                <div className="mt-1 relative rounded-md">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-[#002060]" />
-                  </div>
-                  <input
-                    type="password"
+                <div className="mt-1">
+                  <CampoContrasena
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={setPassword}
                     placeholder="Ingrese su contraseña"
-                    className="block w-full pl-10 pr-3 py-2.5 bg-white border-2 border-[#CBD3F0] rounded-xl text-black placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4040E0] focus:border-[#4040E0] sm:text-sm"
+                    autoComplete="current-password"
+                    icono={<Lock className="h-5 w-5 text-[#002060]" />}
                   />
+                </div>
+              </div>
+
+              {/* CÓDIGO DE VERIFICACIÓN (CAPTCHA) */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-black">
+                  Código de verificación:
+                </label>
+                <div className="mt-1 flex items-start gap-3">
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      value={codigoCaptcha}
+                      onChange={(e) => setCodigoCaptcha(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+                      placeholder="Escriba el código de la imagen"
+                      maxLength={6}
+                      autoComplete="off"
+                      className="block w-full px-3 py-2.5 bg-white border-2 border-[#CBD3F0] rounded-xl text-black placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4040E0] focus:border-[#4040E0] sm:text-sm font-mono tracking-[0.3em]"
+                    />
+                    <p className="text-[10px] text-slate-500 mt-1 flex items-center gap-1">
+                      <ImageIcon className="w-3 h-3" />
+                      Escriba los caracteres que ve en la imagen para poder ingresar.
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    {captcha?.imagen ? (
+                      <img
+                        src={captcha.imagen}
+                        alt="Código de verificación de seguridad"
+                        className="h-[70px] w-[220px] rounded-xl border-2 border-[#CBD3F0] bg-white object-cover"
+                      />
+                    ) : (
+                      <div className="h-[70px] w-[220px] rounded-xl border-2 border-dashed border-[#CBD3F0] bg-white flex items-center justify-center text-[10px] font-bold text-slate-400 text-center px-2">
+                        {cargandoCaptcha ? 'GENERANDO CÓDIGO...' : 'NO SE PUDO GENERAR EL CÓDIGO'}
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={cargarCaptcha}
+                      title="Generar otro código de verificación"
+                      className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-[#4040E0] hover:text-[#2F34C4] transition-colors cursor-pointer"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${cargandoCaptcha ? 'animate-spin' : ''}`} />
+                      <span>No puedo leerlo</span>
+                    </button>
+                  </div>
                 </div>
               </div>
  
@@ -247,15 +331,22 @@ export const Login: React.FC = () => {
                 </div>
               </div>
  
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 items-start">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-black">
                     Ingrese su contraseña
                   </label>
-                  <input
-                    type="password" required value={solPass} onChange={(e) => setSolPass(e.target.value)} placeholder="Ingrese una contraseña"
-                    className="mt-1 block w-full px-3 py-2 bg-white border-2 border-[#CBD3F0] rounded-xl text-black placeholder-slate-400 text-sm focus:ring-2 focus:ring-[#4040E0] focus:outline-none"
-                  />
+                  <div className="mt-1">
+                    <CampoContrasena
+                      value={solPass}
+                      onChange={setSolPass}
+                      placeholder="Ingrese una contraseña"
+                      required
+                      autoComplete="new-password"
+                      mostrarMedidor
+                      icono={<Lock className="h-4 w-4 text-[#002060]" />}
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-black">
@@ -268,6 +359,9 @@ export const Login: React.FC = () => {
                     <option value="pastor">Pastor</option>
                     <option value="tesorero">Tesorero</option>
                   </select>
+                  <p className="text-[10px] text-slate-500 mt-1 leading-snug">
+                    La seguridad de la contraseña se evalúa al escribirla.
+                  </p>
                 </div>
               </div>
  

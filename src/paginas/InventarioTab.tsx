@@ -187,10 +187,8 @@ export const InventarioTab: React.FC = () => {
 
   // REPORTE PDF COLUMNAS (PDF completo de la aplicación)
   const columnasPdf = ['Código', 'Descripción del Artículo', 'Cant', 'Unidad', 'Estado Físico', 'Ubicación', 'Precio', 'Costo Total', 'Procedencia', 'Verificado', 'Ministerio', 'Grupo'];
-  // COLUMNAS AL FORMATO OFICIAL DE LA CABECERA DE INVENTARIO (Excel tal cual el modelo)
-  const columnasExcel = ['CODIGO', 'DESCRIPCION', 'CANT', 'UNIDAD', 'ESTADO', 'PRECIO', 'PROCEDENCIA', 'Verificación', 'Observaciones'];
-  const pistasExcel = ['', '(Tamaño-Color-Medida-Marca-Serie-Modelo)', '', 'Pz-Jg', 'Nuev-Bueno-Mal', 'Bs-Sus', 'Comprado-Donación', '', ''];
-  const anchosExcel = [14, 72, 7, 9, 13, 9, 17, 7, 24];
+  // SUBTÍTULOS OFICIALES DE COLUMNA (fila de pistas del reporte)
+  const pistas = ['', '(Tamaño-Color-Medida-Marca-Serie-Modelo)', '', 'Pz-Jg', 'Nuev-Bueno-Mal', 'Bs-Sus', 'Comprado-Donación', '', ''];
   const datosPdf = inventarioFiltrado.map(item => [
     item.codigo,
     item.descripcion,
@@ -204,17 +202,6 @@ export const InventarioTab: React.FC = () => {
     item.verificacion,
     ministerios?.find(m => m.id_ministerio === item.id_ministerio)?.nombre_ministerio || 'General',
     item.id_grupo ? `Grupo ${item.id_grupo}` : '-'
-  ]);
-  const datosExcel = inventarioFiltrado.map(item => [
-    item.codigo,
-    `Cod. ${String(item.codigo).padStart(2, '0')} - ${item.descripcion}`,
-    item.cantidad,
-    item.unidad || 'Pz',
-    item.estado,
-    `${Number(item.precio)} ${item.moneda}`,
-    item.procedencia,
-    item.verificacion,
-    item.observaciones || '',
   ]);
 
   return (
@@ -737,10 +724,7 @@ export const InventarioTab: React.FC = () => {
           seccion="ESCUELA BIBLICA y DISCIPULADO"
           columnas={columnasPdf}
           datos={datosPdf}
-          pistas={pistasExcel}
-          anchos={anchosExcel}
-          excelColumnas={columnasExcel}
-          excelDatos={datosExcel}
+          pistas={pistas}
           alCerrar={() => setReportePdfAbierto(false)}
         />
       )}

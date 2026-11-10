@@ -140,7 +140,8 @@ CREATE TABLE IF NOT EXISTS actividades (
   meta TEXT,
   presupuesto DOUBLE PRECISION DEFAULT 0,
   costo_real DOUBLE PRECISION DEFAULT 0,
-  id_ministerio INT DEFAULT NULL REFERENCES ministerios(id_ministerio) ON DELETE SET NULL ON UPDATE CASCADE
+  id_ministerio INT DEFAULT NULL REFERENCES ministerios(id_ministerio) ON DELETE SET NULL ON UPDATE CASCADE,
+  todos_ministerios BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE INDEX IF NOT EXISTS idx_actividades_fecha ON actividades(fecha);

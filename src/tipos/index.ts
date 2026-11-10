@@ -103,7 +103,8 @@ export interface Actividad {
   meta: string;
   presupuesto: number;
   costo_real: number;
-  id_ministerio: number; // CLAVE FORÁNEA (FK)
+  id_ministerio: number | null; // CLAVE FORÁNEA (FK); null = ninguno o todos
+  todos_ministerios?: boolean; // true = la actividad está a cargo de todos los ministerios
 }
 
 // ESTA ES LA ESTRUCTURA DE LA TABLA: MOVIMIENTOS ECONÓMICOS

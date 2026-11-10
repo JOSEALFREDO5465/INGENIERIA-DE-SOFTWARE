@@ -6,8 +6,16 @@ import { motion } from 'motion/react';
 import { EntradaAnimada } from '../componentes/EntradaAnimada';
 import { useApp } from '../contextos/AppContexto';
 import { Actividad } from '../tipos';
-import { Plus, Search, FileText, Eye, Pencil, Trash2, X, AlertTriangle, Calendar, Clock, MapPin, Target, CircleCheck, Circle, XCircle } from 'lucide-react';
+import { Plus, Search, FileText, Eye, Pencil, Trash2, X, AlertTriangle, Calendar, Clock, MapPin, Target, CircleCheck, XCircle, Wallet, Receipt, TrendingUp, TrendingDown } from 'lucide-react';
 import { GeneradorPDF } from '../componentes/GeneradorPDF';
+
+// Formato monetario único para toda la sección financiera de actividades.
+const formatoBs = (valor: number) =>
+  (Number.isFinite(valor) ? valor : 0).toLocaleString('es-BO', {
+    style: 'currency',
+    currency: 'BOB',
+    minimumFractionDigits: 2,
+  });
 
 // Propósitos oficiales de la Iglesia (selección múltiple, todas = TODOS LOS PROPÓSITOS)
 const PROPOSITOS_DISPONIBLES = ['Adoración', 'Comunión', 'Discipulado', 'Ministerio', 'Evangelismo'];
@@ -67,10 +75,11 @@ const obtenerNombreMesYAnio = (fechaStr: string) => {
   return `${mesNombre} DE ${anio}`;
 };
 
-// Convierte "HH:MM" a minutos desde medianoche para comparar intervalos.
+// Convierte "HH:MM" (o "HH:MM:SS") a minutos desde medianoche para comparar intervalos.
 const horaAMinutos = (h: string) => {
+  if (!h) return -1;
   const [hh, mm] = h.split(':').map(Number);
-  if (!hh || !mm) return -1;
+  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return -1;
   return hh * 60 + mm;
 };
 
@@ -105,7 +114,8 @@ export const ActividadesTab: React.FC = () => {
   const [meta, setMeta] = useState<string>('');
   const [presupuesto, setPresupuesto] = useState<number>(0);
   const [costoReal, setCostoReal] = useState<number>(0);
-  const [idMinisterio, setIdMinisterio] = useState<number>(1);
+  // 'ninguno' | 'todos' | id del ministerio seleccionado
+  const [ministerioSeleccionado, setMinisterioSeleccionado] = useState<string>('ninguno');
 
   const [errValidacion, setErrValidacion] = useState<string>('');
 
@@ -137,15 +147,44 @@ export const ActividadesTab: React.FC = () => {
     return fechaB.localeCompare(fechaA);
   });
 
-  // Detecta conflictos con actividades existentes (mismo lugar o responsable con solapamiento horario)
+  // Resumen financiero global de todas las actividades (la alerta no debe ocultarse con el buscador).
+  const resumenFinanciero = actividades.reduce(
+    (acc, act) => {
+      const presupuestoAct = Number(act.presupuesto) || 0;
+      const costoAct = Number(act.costo_real) || 0;
+      acc.presupuesto += presupuestoAct;
+      acc.costo += costoAct;
+      if (costoAct > presupuestoAct) {
+        acc.sobrecostos += 1;
+        acc.montoSobrecosto += costoAct - presupuestoAct;
+      }
+      return acc;
+    },
+    { presupuesto: 0, costo: 0, sobrecostos: 0, montoSobrecosto: 0 }
+  );
+  const variacionTotal = resumenFinanciero.presupuesto - resumenFinanciero.costo;
+
+  // Variación en vivo dentro del formulario: Presupuesto - Costo real.
+  const variacionFormulario = (Number(presupuesto) || 0) - (Number(costoReal) || 0);
+
+  const obtenerMinisterioActividad = (act: Actividad) => {
+    if (act.todos_ministerios) return 'Todos los ministerios';
+    if (!act.id_ministerio) return 'Ninguno';
+    return ministerios.find((m) => Number(m.id_ministerio) === Number(act.id_ministerio))?.nombre_ministerio ?? 'Ninguno';
+  };
+
+  // Detecta conflictos con actividades existentes (misma fecha, mismo lugar o responsable con solapamiento horario)
   const detectarConflicto = (datos: Partial<Actividad>, excluirId?: number): Actividad | null => {
     const inicio = datos.hora_inicio || '';
     const fin = datos.hora_fin || '';
     if (!inicio || !fin) return null;
+    const fechaDatos = String(datos.fecha ?? '').slice(0, 10);
     for (const act of actividades) {
       if (excluirId !== undefined && act.id_actividad === excluirId) continue;
-      const mismoLugar = act.lugar.trim().toLowerCase() === (datos.lugar || '').trim().toLowerCase();
-      const mismoResponsable = act.responsable.trim().toLowerCase() === (datos.responsable || '').trim().toLowerCase();
+      const mismaFecha = String(act.fecha ?? '').slice(0, 10) === fechaDatos;
+      if (!mismaFecha) continue;
+      const mismoLugar = (act.lugar ?? '').trim().toLowerCase() === (datos.lugar || '').trim().toLowerCase();
+      const mismoResponsable = (act.responsable ?? '').trim().toLowerCase() === (datos.responsable || '').trim().toLowerCase();
       const solapan = intervalosSeSolapan(inicio, fin, act.hora_inicio, act.hora_fin || undefined);
       if (solapan && (mismoLugar || mismoResponsable)) {
         return act;
@@ -166,7 +205,7 @@ export const ActividadesTab: React.FC = () => {
     setMeta('');
     setPresupuesto(0);
     setCostoReal(0);
-    setIdMinisterio(1);
+    setMinisterioSeleccionado('ninguno');
     setErrValidacion('');
   };
 
@@ -191,20 +230,25 @@ export const ActividadesTab: React.FC = () => {
   };
 
   const abrirFormEditar = (act: Actividad) => {
-    setFecha(act.fecha);
-    setHoraInicio(act.hora_inicio || '');
-    setHoraFin(act.hora_fin || '');
+    // La API puede devolver fecha/hora en formato ISO completo; los inputs date/time necesitan YYYY-MM-DD y HH:MM.
+    setFecha(String(act.fecha ?? '').slice(0, 10));
+    setHoraInicio(String(act.hora_inicio ?? '').slice(0, 5));
+    setHoraFin(String(act.hora_fin ?? '').slice(0, 5));
     setActividad(act.actividad);
     setPropositosSeleccionados(propositosDesdeApi(act.proposito));
-    setHoraInicio(act.hora_inicio || '');
-    setHoraFin(act.hora_fin || '');
-    setResponsable(act.responsable);
-    setLugar(act.lugar);
+    setResponsable(act.responsable ?? '');
+    setLugar(act.lugar ?? '');
     setEstado(act.estado);
     setMeta(act.meta || '');
-    setPresupuesto(act.presupuesto || 0);
-    setCostoReal(act.costo_real || 0);
-    setIdMinisterio(act.id_ministerio || 1);
+    setPresupuesto(Number(act.presupuesto) || 0);
+    setCostoReal(Number(act.costo_real) || 0);
+    setMinisterioSeleccionado(
+      act.todos_ministerios
+        ? 'todos'
+        : act.id_ministerio
+          ? String(act.id_ministerio)
+          : 'ninguno'
+    );
     setActividadSeleccionadaId(act.id_actividad);
     setModoEdicion(true);
     setModalAbierto(true);
@@ -242,6 +286,9 @@ export const ActividadesTab: React.FC = () => {
       return;
     }
 
+    const ministerioEsTodos = ministerioSeleccionado === 'todos';
+    const ministerioEsNinguno = ministerioSeleccionado === 'ninguno';
+
     const datosForm = {
       fecha,
       hora_inicio: horaInicio,
@@ -254,7 +301,8 @@ export const ActividadesTab: React.FC = () => {
       meta: meta.trim(),
       presupuesto: Number(presupuesto),
       costo_real: Number(costoReal),
-      id_ministerio: Number(idMinisterio),
+      id_ministerio: ministerioEsTodos || ministerioEsNinguno ? null : Number(ministerioSeleccionado),
+      todos_ministerios: ministerioEsTodos,
     };
 
     if (modoEdicion && actividadSeleccionadaId !== null) {
@@ -276,8 +324,8 @@ export const ActividadesTab: React.FC = () => {
   const columnasPdf = ['F. Actividad', 'Hora Inicio', 'Hora Fin', 'Nombre Actividad', 'Propósito', 'Responsable', 'Lugar', 'Presupuesto', 'Costo Real', 'Estado'];
   const datosPdf = actividadesFiltradas.map(act => [
     act.fecha,
-    act.hora_inicio || '-',
-    act.hora_fin || '-',
+    String(act.hora_inicio ?? '-').slice(0, 5),
+    String(act.hora_fin ?? '-').slice(0, 5),
     act.actividad,
     Array.isArray(act.proposito) ? act.proposito.join(', ') : String(act.proposito ?? '-'),
     act.responsable,
@@ -338,6 +386,75 @@ export const ActividadesTab: React.FC = () => {
       </div>
       </EntradaAnimada>
 
+      {/* RESUMEN FINANCIERO */}
+      <EntradaAnimada delay={0.14}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex items-center gap-4">
+            <div className="w-11 h-11 rounded-xl bg-[#EEF1FF] flex items-center justify-center flex-shrink-0">
+              <Wallet className="w-5 h-5 text-[#4040E0]" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Presupuesto total</p>
+              <p className="text-lg font-black text-slate-900 leading-tight truncate">{formatoBs(resumenFinanciero.presupuesto)}</p>
+              <p className="text-[10px] text-slate-400">{actividades.length} actividades registradas</p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex items-center gap-4">
+            <div className="w-11 h-11 rounded-xl bg-[#FEF3C7] flex items-center justify-center flex-shrink-0">
+              <Receipt className="w-5 h-5 text-[#B45309]" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Costo real ejecutado</p>
+              <p className="text-lg font-black text-slate-900 leading-tight truncate">{formatoBs(resumenFinanciero.costo)}</p>
+              <p className="text-[10px] text-slate-400">Gastos efectivamente realizados</p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex items-center gap-4">
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${variacionTotal < 0 ? 'bg-[#FEE2E2]' : 'bg-[#D1FAE5]'}`}>
+              {variacionTotal < 0
+                ? <TrendingDown className="w-5 h-5 text-[#B91C1C]" />
+                : <TrendingUp className="w-5 h-5 text-[#047857]" />}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Variación total</p>
+              <p className={`text-lg font-black leading-tight truncate ${variacionTotal < 0 ? 'text-[#B91C1C]' : 'text-[#047857]'}`}>{formatoBs(variacionTotal)}</p>
+              <p className="text-[10px] text-slate-400">Presupuesto - costo real</p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex items-center gap-4">
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${resumenFinanciero.sobrecostos > 0 ? 'bg-[#FEE2E2]' : 'bg-[#D1FAE5]'}`}>
+              <AlertTriangle className={`w-5 h-5 ${resumenFinanciero.sobrecostos > 0 ? 'text-[#DC2626]' : 'text-[#047857]'}`} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Actividades con sobrecosto</p>
+              <p className={`text-lg font-black leading-tight ${resumenFinanciero.sobrecostos > 0 ? 'text-[#B91C1C]' : 'text-[#047857]'}`}>{resumenFinanciero.sobrecostos}</p>
+              <p className="text-[10px] text-slate-400 truncate">
+                {resumenFinanciero.sobrecostos > 0 ? `Exceso: ${formatoBs(resumenFinanciero.montoSobrecosto)}` : 'Todo dentro del presupuesto'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </EntradaAnimada>
+
+      {resumenFinanciero.sobrecostos > 0 && (
+        <EntradaAnimada delay={0.16}>
+          <div className="bg-[#FEF2F2] border border-[#FECACA] rounded-2xl p-4 shadow-sm flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#FEE2E2] flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-5 h-5 text-[#DC2626]" />
+            </div>
+            <div>
+              <p className="text-sm font-black text-[#991B1B]">Alerta de sobrecosto</p>
+              <p className="text-xs text-[#B91C1C] mt-0.5">
+                {resumenFinanciero.sobrecostos} {resumenFinanciero.sobrecostos === 1 ? 'actividad supera' : 'actividades superan'} el presupuesto asignado. Sobrecosto acumulado: <strong>{formatoBs(resumenFinanciero.montoSobrecosto)}</strong>.
+              </p>
+            </div>
+          </div>
+        </EntradaAnimada>
+      )}
+
       {/* TABLAS MENSUALES */}
       <div className="space-y-6">
         {mesesOrdenados.map((mesAnio, mesIndex) => (
@@ -361,6 +478,9 @@ export const ActividadesTab: React.FC = () => {
                     <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Lugar</th>
                     <th className="px-3 py-3 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider">Estado</th>
                     <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Meta</th>
+                    <th className="px-3 py-3 text-right text-[10px] font-bold text-slate-500 uppercase tracking-wider">Presupuesto</th>
+                    <th className="px-3 py-3 text-right text-[10px] font-bold text-slate-500 uppercase tracking-wider">Costo Real</th>
+                    <th className="px-3 py-3 text-right text-[10px] font-bold text-slate-500 uppercase tracking-wider">Variación</th>
                     <th className="pl-3 pr-6 py-3 text-right text-[10px] font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
                   </tr>
                 </thead>
@@ -371,17 +491,24 @@ export const ActividadesTab: React.FC = () => {
                     const todosMarcados = propositosApi.length > 0 && TODOS_LOS_PROPOSITOS.every((p) =>
                       propositosApi.some((op) => normalizarApi(op) === p)
                     );
-                    const fechaDate = new Date(`${act.fecha}T00:00:00`);
-                    const dia = String(fechaDate.getDate()).padStart(2, '0');
-                    const mesCorto = fechaDate.toLocaleDateString('es-BO', { month: 'short', timeZone: 'UTC' }).replace('.', '');
+                    const fechaSolo = String(act.fecha).slice(0, 10);
+                    const partes = fechaSolo.split('-');
+                    const dia = partes[2] ?? '01';
+                    const mesCorto = partes[1]
+                      ? ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'][parseInt(partes[1], 10) - 1]
+                      : '';
                     const colorResp = colorResponsable(act.responsable);
+                    const presupuestoAct = Number(act.presupuesto) || 0;
+                    const costoAct = Number(act.costo_real) || 0;
+                    const variacionAct = presupuestoAct - costoAct;
+                    const tieneSobrecosto = variacionAct < 0;
                     return (
                       <motion.tr
                         key={act.id_actividad}
                         initial={{ opacity: 0, y: -8 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.25 + actIndex * 0.03, duration: 0.35, ease: 'easeOut' }}
-                        className="hover:bg-slate-50/50 transition">
+                        className={tieneSobrecosto ? 'bg-[#FFF7F7] hover:bg-[#FEF2F2] transition' : 'hover:bg-slate-50/50 transition'}>
                         {/* FECHA */}
                         <td className="pl-6 pr-3 py-4 whitespace-nowrap">
                           <div className="flex items-center space-x-1.5">
@@ -410,12 +537,15 @@ export const ActividadesTab: React.FC = () => {
                               );
                             })}
                           </div>
+                          <p className="text-[9px] text-slate-400 mt-1">
+                            A cargo: <span className="font-semibold text-slate-500">{obtenerMinisterioActividad(act)}</span>
+                          </p>
                         </td>
                         {/* HORA */}
                         <td className="px-3 py-4 whitespace-nowrap">
                           <div className="flex items-center space-x-1.5 text-slate-700">
                             <Clock className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                            <span className="font-semibold">{act.hora_inicio}</span>
+                            <span className="font-semibold">{String(act.hora_inicio).slice(0, 5)}</span>
                           </div>
                         </td>
                         {/* RESPONSABLE */}
@@ -460,10 +590,34 @@ export const ActividadesTab: React.FC = () => {
                             <span className="italic leading-snug">({act.meta})</span>
                           </div>
                         </td>
+                        {/* PRESUPUESTO */}
+                        <td className="px-3 py-4 text-right whitespace-nowrap font-mono font-bold text-slate-700">
+                          {formatoBs(presupuestoAct)}
+                        </td>
+                        {/* COSTO REAL */}
+                        <td className="px-3 py-4 text-right whitespace-nowrap font-mono font-bold text-slate-700">
+                          {formatoBs(costoAct)}
+                        </td>
+                        {/* VARIACIÓN */}
+                        <td className="px-3 py-4 text-right whitespace-nowrap">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-black border ${
+                              tieneSobrecosto
+                                ? 'bg-[#FEE2E2] text-[#B91C1C] border-[#FECACA]'
+                                : 'bg-[#D1FAE5] text-[#047857] border-[#A7F3D0]'
+                            }`}
+                            title={tieneSobrecosto ? 'Sobrecosto: el costo real supera el presupuesto' : 'Saldo disponible dentro del presupuesto'}
+                          >
+                            {tieneSobrecosto
+                              ? <AlertTriangle className="w-3 h-3" />
+                              : <TrendingUp className="w-3 h-3" />}
+                            {formatoBs(variacionAct)}
+                          </span>
+                        </td>
                         {/* ACCIONES */}
                         <td className="pl-3 pr-6 py-4 text-right whitespace-nowrap space-x-1.5">
                           <button
-                            onClick={() => { setActVerDetalle(act); setModalAbierto(true); }}
+                            onClick={() => setActVerDetalle(act)}
                             className="p-1.5 text-slate-500 hover:bg-slate-100 rounded transition" title="Ver detalle">
                             <Eye className="w-4 h-4" />
                           </button>
@@ -511,7 +665,9 @@ export const ActividadesTab: React.FC = () => {
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
               <div>
                 <h3 className="text-base font-black text-slate-850">Detalle de Actividad</h3>
-                <p className="text-xs text-slate-500">{actVerDetalle.fecha} · {actVerDetalle.hora_inicio} - {actVerDetalle.hora_fin || '-'}</p>
+                <p className="text-xs text-slate-500">
+                  {String(actVerDetalle.fecha ?? '').slice(0, 10)} · {String(actVerDetalle.hora_inicio ?? '').slice(0, 5)} - {actVerDetalle.hora_fin ? String(actVerDetalle.hora_fin).slice(0, 5) : '-'}
+                </p>
               </div>
               <button onClick={() => setActVerDetalle(null)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
@@ -553,17 +709,21 @@ export const ActividadesTab: React.FC = () => {
                   </div>
                 </div>
                 <div>
+                  <span className="block text-[10px] uppercase font-mono text-slate-400">Ministerio a cargo</span>
+                  <p className="font-bold text-slate-800">{obtenerMinisterioActividad(actVerDetalle)}</p>
+                </div>
+                <div>
                   <span className="block text-[10px] uppercase font-mono text-slate-400">Presupuesto proyectado</span>
-                  <p className="font-bold text-slate-800">{Number(actVerDetalle.presupuesto).toLocaleString('es-BO', { style: 'currency', currency: 'BOB' })}</p>
+                  <p className="font-bold text-slate-800">{formatoBs(Number(actVerDetalle.presupuesto) || 0)}</p>
                 </div>
                 <div>
                   <span className="block text-[10px] uppercase font-mono text-slate-400">Costo real ejecutado</span>
-                  <p className="font-bold text-slate-800">{Number(actVerDetalle.costo_real).toLocaleString('es-BO', { style: 'currency', currency: 'BOB' })}</p>
+                  <p className="font-bold text-slate-800">{formatoBs(Number(actVerDetalle.costo_real) || 0)}</p>
                 </div>
                 <div>
                   <span className="block text-[10px] uppercase font-mono text-slate-400">Variación</span>
-                  <p className={`font-bold ${actVerDetalle.costo_real <= actVerDetalle.presupuesto ? 'text-[#047857]' : 'text-[#B91C1C]'}`}>
-                    {(Number(actVerDetalle.presupuesto) - Number(actVerDetalle.costo_real)).toLocaleString('es-BO', { style: 'currency', currency: 'BOB' })}
+                  <p className={`font-bold ${Number(actVerDetalle.costo_real) <= Number(actVerDetalle.presupuesto) ? 'text-[#047857]' : 'text-[#B91C1C]'}`}>
+                    {formatoBs((Number(actVerDetalle.presupuesto) || 0) - (Number(actVerDetalle.costo_real) || 0))}
                   </p>
                 </div>
                 <div>
@@ -581,6 +741,16 @@ export const ActividadesTab: React.FC = () => {
                   <p className="font-bold text-slate-800">{actVerDetalle.meta}</p>
                 </div>
               </div>
+
+              {Number(actVerDetalle.costo_real) > Number(actVerDetalle.presupuesto) && (
+                <div className="bg-[#FEF2F2] border border-[#FECACA] rounded-xl p-3 flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-[#DC2626] flex-shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-[#B91C1C]">
+                    <strong>Sobrecosto detectado:</strong> el costo real supera el presupuesto en{' '}
+                    <strong>{formatoBs((Number(actVerDetalle.costo_real) || 0) - (Number(actVerDetalle.presupuesto) || 0))}</strong>.
+                  </p>
+                </div>
+              )}
             </div>
             <div className="px-6 py-4 border-t border-slate-100 flex justify-end rounded-b-xl">
               <button onClick={() => setActVerDetalle(null)} className="bg-slate-900 text-white font-bold py-1.5 px-4 text-xs rounded-xl cursor-pointer">
@@ -750,8 +920,10 @@ export const ActividadesTab: React.FC = () => {
                   <label className="block text-xs font-bold text-slate-650 uppercase mb-1">Presupuesto Proyectado</label>
                   <input
                     type="number"
+                    min="0"
+                    step="0.01"
                     value={presupuesto}
-                    onChange={(e) => setPresupuesto(Number(e.target.value) || 0)}
+                    onChange={(e) => setPresupuesto(Math.max(0, Number(e.target.value) || 0))}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-1 focus:ring-indigo-500 outline-none"
                       placeholder="Ingrese el presupuesto en Bs, ej: 500"
                     />
@@ -760,8 +932,10 @@ export const ActividadesTab: React.FC = () => {
                   <label className="block text-xs font-bold text-slate-650 uppercase mb-1">Costo Real Ejecutado</label>
                   <input
                     type="number"
+                    min="0"
+                    step="0.01"
                     value={costoReal}
-                    onChange={(e) => setCostoReal(Number(e.target.value) || 0)}
+                    onChange={(e) => setCostoReal(Math.max(0, Number(e.target.value) || 0))}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-1 focus:ring-indigo-500 outline-none"
                       placeholder="Ingrese el costo real incurrido"
                     />
@@ -769,16 +943,47 @@ export const ActividadesTab: React.FC = () => {
                 <div>
                   <label className="block text-xs font-bold text-slate-650 uppercase mb-1">Ministerio a Cargo</label>
                   <select
-                    value={String(idMinisterio)}
-                    onChange={(e) => setIdMinisterio(Number(e.target.value))}
+                    value={ministerioSeleccionado}
+                    onChange={(e) => setMinisterioSeleccionado(e.target.value)}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-1 focus:ring-indigo-500 outline-none"
                   >
+                    <option value="ninguno">Ninguno</option>
+                    <option value="todos">Todos los ministerios</option>
                     {(ministerios || []).map((m) => (
-                      <option key={m.id_ministerio} value={m.id_ministerio}>{m.nombre_ministerio}</option>
+                      <option key={m.id_ministerio} value={String(m.id_ministerio)}>{m.nombre_ministerio}</option>
                     ))}
                   </select>
+                  <p className="text-[10px] text-slate-400 mt-1">Puede quedar sin ministerio o asignarse a todos.</p>
                 </div>
               </div>
+
+              {/* VARIACIÓN AUTOMÁTICA: PRESUPUESTO - COSTO REAL */}
+              <div className={`rounded-xl border p-4 ${variacionFormulario < 0 ? 'bg-[#FEF2F2] border-[#FECACA]' : 'bg-[#ECFDF5] border-[#A7F3D0]'}`}>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${variacionFormulario < 0 ? 'bg-[#FEE2E2]' : 'bg-[#D1FAE5]'}`}>
+                      {variacionFormulario < 0
+                        ? <AlertTriangle className="w-4 h-4 text-[#DC2626]" />
+                        : <TrendingUp className="w-4 h-4 text-[#047857]" />}
+                    </div>
+                    <div>
+                      <p className={`text-[10px] font-black uppercase tracking-wider ${variacionFormulario < 0 ? 'text-[#991B1B]' : 'text-[#047857]'}`}>
+                        {variacionFormulario < 0 ? 'Alerta de sobrecosto' : 'Variación presupuestaria'}
+                      </p>
+                      <p className="text-[11px] text-slate-500">Presupuesto proyectado - costo real ejecutado</p>
+                    </div>
+                  </div>
+                  <p className={`text-xl font-black ${variacionFormulario < 0 ? 'text-[#B91C1C]' : 'text-[#047857]'}`}>
+                    {formatoBs(variacionFormulario)}
+                  </p>
+                </div>
+                {variacionFormulario < 0 && (
+                  <p className="text-[11px] text-[#B91C1C] mt-2">
+                    El costo real supera el presupuesto en <strong>{formatoBs(Math.abs(variacionFormulario))}</strong>. Revisa el gasto antes de guardar.
+                  </p>
+                )}
+              </div>
+
               <div className="px-6 py-4 border-t border-slate-100 flex justify-end space-x-2 rounded-b-xl">
                 <button
                   type="button"

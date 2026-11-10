@@ -38,6 +38,9 @@ export class ActivityEntity {
   @Column({ name: 'costo_real', type: 'float', default: 0, transformer: { to: (v: number) => v, from: (v: string | number) => (typeof v === 'string' ? parseFloat(v) : v) } })
   costo_real: number;
 
-  @Column({ name: 'id_ministerio', type: 'int' })
-  id_ministerio: number;
+  @Column({ name: 'id_ministerio', type: 'int', nullable: true })
+  id_ministerio: number | null;
+
+  @Column({ name: 'todos_ministerios', type: 'boolean', default: false })
+  todos_ministerios: boolean;
 }

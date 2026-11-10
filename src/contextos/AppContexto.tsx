@@ -22,7 +22,7 @@ interface AppContextoType {
   usuarioActual: Usuario | null;
 
   // FUNCIONALIDADES DE AUTENTICACIÓN Y SOLICITUDES
-  iniciarSesion: (nombre_usuario: string, contrasena: string) => Promise<{ succes: boolean; message: string }>;
+  iniciarSesion: (nombre_usuario: string, contrasena: string, captcha_id?: string, captcha_texto?: string) => Promise<{ succes: boolean; message: string }>;
   cerrarSesion: () => void;
   solicitarCuenta: (usuario: Omit<Usuario, 'id_usuario' | 'fecha_registro' | 'ultimo_acceso' | 'aprobado'>) => Promise<{ succes: boolean; message: string }>;
   aprobarUsuario: (id_usuario: number) => Promise<void>;
@@ -97,14 +97,17 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const cargarDatosServidor = async () => {
     try {
       const headers = authHeaders();
+      // cache: 'no-store' evita respuestas 304 del caché del navegador
+      // (que arrives sin cuerpo y dejaban los módulos vacíos)
+      const opciones = { headers, cache: 'no-store' as RequestCache };
       const responses = await Promise.all([
-        fetch('/api/members', { headers }),
-        fetch('/api/ministries', { headers }),
-        fetch('/api/groups', { headers }),
-        fetch('/api/inventory', { headers }),
-        fetch('/api/activities', { headers }),
-        fetch('/api/economic', { headers }),
-        fetch('/api/users', { headers }),
+        fetch('/api/members', opciones),
+        fetch('/api/ministries', opciones),
+        fetch('/api/groups', opciones),
+        fetch('/api/inventory', opciones),
+        fetch('/api/activities', opciones),
+        fetch('/api/economic', opciones),
+        fetch('/api/users', opciones),
       ]);
 
       // Si cualquier respuesta es 401, la sesión expiró o es inválida
@@ -114,13 +117,16 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
         return;
       }
 
-      if (responses[0].ok) setMiembros(await responses[0].json());
-      if (responses[1].ok) setMinisterios(await responses[1].json());
-      if (responses[2].ok) setGrupos(await responses[2].json());
-      if (responses[3].ok) setInventario(await responses[3].json());
-      if (responses[4].ok) setActividades(await responses[4].json());
-      if (responses[5].ok) setMovimientosEconomicos(await responses[5].json());
-      if (responses[6].ok) setUsuarios(await responses[6].json());
+      // Una respuesta 304 (no modificada) también trae los datos en caché
+      const esValida = (r: Response) => r.ok || r.status === 304;
+
+      if (esValida(responses[0])) setMiembros(await responses[0].json());
+      if (esValida(responses[1])) setMinisterios(await responses[1].json());
+      if (esValida(responses[2])) setGrupos(await responses[2].json());
+      if (esValida(responses[3])) setInventario(await responses[3].json());
+      if (esValida(responses[4])) setActividades(await responses[4].json());
+      if (esValida(responses[5])) setMovimientosEconomicos(await responses[5].json());
+      if (esValida(responses[6])) setUsuarios(await responses[6].json());
     } catch (e) {
       console.error('Error al poblar datos desde el backend:', e);
     }
@@ -143,12 +149,12 @@ export const AppContextoProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, [usuarioActual, token]);
 
   // FUNCIONES DE REGISTRO E INICIO DE SESIÓN
-  const iniciarSesion = async (nombre_usuario: string, contrasena: string) => {
+  const iniciarSesion = async (nombre_usuario: string, contrasena: string, captcha_id?: string, captcha_texto?: string) => {
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre_usuario, contrasena }),
+        body: JSON.stringify({ nombre_usuario, contrasena, captcha_id, captcha_texto }),
       });
       const data = await response.json();
       if (data.success && data.user) {
